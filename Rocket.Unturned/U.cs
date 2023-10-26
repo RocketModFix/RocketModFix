@@ -81,6 +81,7 @@ namespace Rocket.Unturned
                 { "command_heal_success_me","{0} was successfully healed"},
                 { "command_heal_success_other","You were healed by {0}"},
                 { "command_heal_success","You were healed"},
+                { "command_position_get", "Current position: {0}" },
                 { "command_compass_facing_private","You are facing {0}"},
                 { "command_compass_north","N"},
                 { "command_compass_east","E"},

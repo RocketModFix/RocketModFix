@@ -107,6 +107,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Commands\CommandMore.cs" />
+    <Compile Include="Commands\CommandPosition.cs" />
     <Compile Include="Commands\UnturnedCommands.cs" />
     <Compile Include="Commands\UnturnedCommandExtensions.cs" />
     <Compile Include="Player\UnturnedPlayerMovement.cs" />
