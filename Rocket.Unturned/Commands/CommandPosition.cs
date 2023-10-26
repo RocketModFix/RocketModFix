@@ -27,7 +27,7 @@ namespace Rocket.Unturned.Commands
         {
             UnturnedPlayer player = (UnturnedPlayer)caller;
 
-            UnturnedChat.Say(player, U.Translate("command_position_get"));
+            UnturnedChat.Say(player, U.Translate("command_position_get", player.Position.ToString()));
         }
     }
 }
