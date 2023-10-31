@@ -12,7 +12,6 @@ namespace Rocket.Core.Assets
     public class JsonFileAsset<T> : Asset<T> where T : class, IDefaultable
     {
         private JSONDeserializer deserializer;
-        private JSONSerializer serializer;
         private string file;
         T defaultInstance;
 
