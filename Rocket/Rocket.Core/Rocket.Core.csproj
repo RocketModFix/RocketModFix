@@ -56,6 +56,9 @@
       <HintPath>..\..\Rocket.Unturned\lib\Assembly-CSharp.dll</HintPath>
       <Private>False</Private>
     </Reference>
+    <Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.13.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -69,6 +72,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Assets\XMLFileAsset.cs" />
     <Compile Include="Commands\CommandRFlush.cs" />
     <Compile Include="Commands\CommandRKick.cs" />
     <Compile Include="Commands\CommandRWho.cs" />
@@ -76,6 +80,7 @@
     <Compile Include="Commands\RocketCommandManager.cs" />
     <Compile Include="Debugger.cs" />
     <Compile Include="Extensions\IRocketPlayerExtension.cs" />
+    <Compile Include="Extensions\JsonExtension.cs" />
     <Compile Include="Extensions\MonoBehaviourExtension.cs" />
     <Compile Include="Logging\ELogType.cs" />
     <Compile Include="Commands\RocketCommandCooldown.cs" />
@@ -84,7 +89,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Assets\Asset.cs" />
     <Compile Include="Assets\WebXMLFileAsset.cs" />
-    <Compile Include="Assets\XMLFileAsset.cs" />
+    <Compile Include="Assets\JsonFileAsset.cs" />
     <Compile Include="Extensions\MulticastDelegateExtension.cs" />
     <Compile Include="Logging\LogEntry.cs" />
     <Compile Include="Permissions\RocketPermissionsManager.cs" />
@@ -116,6 +121,7 @@
     <Content Include="lib\UnityEngine.dll" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="packages.config" />
     <None Include="Rocket.Core.nuspec">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <SubType>Designer</SubType>

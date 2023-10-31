@@ -5,6 +5,7 @@ using Rocket.Core.Assets;
 using Rocket.Core.Extensions;
 using Rocket.Core.Logging;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -19,7 +20,7 @@ namespace Rocket.Core.Plugins
 
         public RocketPlugin() : base()
         {
-            string configurationFile = Path.Combine(Directory, string.Format(Core.Environment.PluginConfigurationFileTemplate, Name));
+            string configurationFile = Path.Combine(Directory, string.Format(Core.Environment.PluginConfigurationFileTemplate, Name, Core.R.Settings.Instance.UseJsonForPlugins ? "json":"xml"));
 
             string url = "";
             
@@ -36,7 +37,20 @@ namespace Rocket.Core.Plugins
             }
             else
             {
-                configuration = new XMLFileAsset<RocketPluginConfiguration>(configurationFile);
+                if(!Core.R.Settings.Instance.UseJsonForPlugins)
+                {
+                    configuration = new XMLFileAsset<RocketPluginConfiguration>(configurationFile);
+                }
+                else
+                {
+                    configuration = new JsonFileAsset<RocketPluginConfiguration>(configurationFile);
+                }
+                    
+
+
+
+
+                
             }
         }
 
@@ -54,8 +68,22 @@ namespace Rocket.Core.Plugins
         public delegate void PluginLoading(IRocketPlugin plugin, ref bool cancelLoading);
         public static event PluginLoading OnPluginLoading;
 
-        private XMLFileAsset<TranslationList> translations;
-        public IAsset<TranslationList> Translations { get { return translations; } }
+
+        private XMLFileAsset<TranslationList> translationsXml;
+
+        
+
+        private JsonFileAsset<TranslationList> translationsJson;
+
+        public IAsset<TranslationList> Translations { get 
+                {
+                if(Core.R.Settings.Instance.UseJsonForPlugins)
+                    return translationsJson;
+                else
+                    return translationsXml;
+                }
+            }
+        
 
         private PluginState state = PluginState.Unloaded;
         public PluginState State
@@ -88,8 +116,14 @@ namespace Rocket.Core.Plugins
 
             if (DefaultTranslations != null | DefaultTranslations.Count() != 0)
             {
-                translations = new XMLFileAsset<TranslationList>(Path.Combine(Directory,String.Format(Environment.PluginTranslationFileTemplate, Name, R.Settings.Instance.LanguageCode)), new Type[] { typeof(TranslationList), typeof(TranslationListEntry) }, DefaultTranslations);
-                DefaultTranslations.AddUnknownEntries(translations);
+                if(!Core.R.Settings.Instance.UseJsonForPlugins)
+                    translationsXml = new XMLFileAsset<TranslationList>(Path.Combine(Directory,String.Format(Environment.PluginTranslationFileTemplate, Name, R.Settings.Instance.LanguageCode, Core.R.Settings.Instance.UseJsonForPlugins ? "json" : "xml")), new Type[] { typeof(TranslationList), typeof(TranslationListEntry) }, DefaultTranslations);
+                else
+                    translationsJson = new JsonFileAsset<TranslationList>(Path.Combine(Directory, String.Format(Environment.PluginTranslationFileTemplate, Name, R.Settings.Instance.LanguageCode, Core.R.Settings.Instance.UseJsonForPlugins ? "json" : "xml")), new Type[] {  typeof(TranslationList),typeof(TranslationListEntry)}, DefaultTranslations);
+
+
+                
+                DefaultTranslations.AddUnknownEntries(Translations);
             }
         }
 
@@ -120,7 +154,7 @@ namespace Rocket.Core.Plugins
         public virtual void LoadPlugin()
         {
             Logging.Logger.Log("\n[loading] " + Name, ConsoleColor.Cyan);
-            translations.Load();
+            Translations.Load();
             R.Commands.RegisterFromAssembly(Assembly);
 
             try
@@ -210,4 +244,5 @@ namespace Rocket.Core.Plugins
             gameObject.TryRemoveComponent<T>();
         }
     }
+
 }
