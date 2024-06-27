@@ -88,7 +88,14 @@ namespace Rocket.Core.Utils
             }
             foreach (var a in currentActions)
             {
-                a();
+                try
+                {
+                    a();
+                }
+                catch (Exception ex)
+                {
+                    Logging.Logger.LogException(ex, "An error occured while executing action");
+                }
             }
 
             List<DelayedQueueItem> currentDelayed = new List<DelayedQueueItem>();
@@ -100,7 +107,14 @@ namespace Rocket.Core.Utils
             }
             foreach (DelayedQueueItem item in currentDelayed)
             {
-                item.action();
+                try
+                {
+                    item.action();
+                }
+                catch (Exception ex)
+                {
+                    Logging.Logger.LogException(ex, "An error occured while executing delayed action");
+                }
             }
 
         }
