@@ -34,11 +34,10 @@ namespace Rocket.Core.Commands
 
         private void Awake()
         {
-            Commands = commands.AsReadOnly();
+            Commands = commands.AsReadOnly(); // commandsDict.Values.ToList().AsReadOnly();?
             commandMappings = new XMLFileAsset<RocketCommands>(Environment.CommandsFile);
             checkCommandMappings();
             R.Plugins.OnPluginsLoaded += Plugins_OnPluginsLoaded;
-            commandsDict.Values.ToList().AsReadOnly();
             foreach (RegisteredRocketCommand CMD in commands)
             {
                 commandsDict[CMD.Name.ToLower()] = CMD;
