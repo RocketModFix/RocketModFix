@@ -18,7 +18,8 @@ namespace Rocket.Core.Commands
     public class RocketCommandManager : MonoBehaviour
     {
         private readonly List<RegisteredRocketCommand> commands = new List<RegisteredRocketCommand>();
-        internal List<RocketCommandCooldown> cooldown = new List<RocketCommandCooldown>();
+        private readonly Dictionary<string, RegisteredRocketCommand> commandsDict = new Dictionary<string, RegisteredRocketCommand>();
+        internal Dictionary<(string, IRocketCommand), RocketCommandCooldown> cooldown = new Dictionary<(string, IRocketCommand), RocketCommandCooldown>();
         public ReadOnlyCollection<RegisteredRocketCommand> Commands { get; internal set; }
         private XMLFileAsset<RocketCommands> commandMappings;
 
@@ -37,6 +38,12 @@ namespace Rocket.Core.Commands
             commandMappings = new XMLFileAsset<RocketCommands>(Environment.CommandsFile);
             checkCommandMappings();
             R.Plugins.OnPluginsLoaded += Plugins_OnPluginsLoaded;
+            commandsDict.Values.ToList().AsReadOnly();
+            foreach (RegisteredRocketCommand CMD in commands)
+            {
+                commandsDict[CMD.Name.ToLower()] = CMD;
+                foreach(string Alias in CMD.Aliases) commandsDict[Alias.ToLower()] = CMD;
+            }
         }
 
         private void checkCommandMappings()
@@ -80,8 +87,8 @@ namespace Rocket.Core.Commands
 
         public IRocketCommand GetCommand(string command)
         {
-            IRocketCommand foundCommand = commands.Where(c => c.Name.ToLower() == command.ToLower()).FirstOrDefault();
-            if(foundCommand == null) commands.Where(c => c.Aliases.Select(a => a.ToLower()).Contains(command.ToLower())).FirstOrDefault();
+            if(!commandsDict.TryGetValue(command.ToLower(), out RegisteredRocketCommand foundCommand))
+                foundCommand = commands.Where(c => c.Aliases.Select(a => a.ToLower()).Contains(command.ToLower())).FirstOrDefault();
             return foundCommand;
         }
 
@@ -157,7 +164,8 @@ namespace Rocket.Core.Commands
 
             foreach(CommandMapping mapping in commandMappings.Instance.CommandMappings.Where(m => m.Class == className && m.Enabled))
             {
-                commands.Add(new RegisteredRocketCommand(mapping.Name.ToLower(), command));
+                commands.Add(new RegisteredRocketCommand(mapping.Name.ToLower(), command)); // get rid of this to save memory later, some way
+                commandsDict[mapping.Name.ToLower()] = new RegisteredRocketCommand(mapping.Name.ToLower(), command);
                 Logging.Logger.Log("[registered] /" + mapping.Name.ToLower() + " (" + mapping.Class + ")", ConsoleColor.Green);
             }
         }
@@ -165,17 +173,21 @@ namespace Rocket.Core.Commands
         public void DeregisterFromAssembly(Assembly assembly)
         {
             commands.RemoveAll(rc => getCommandType(rc.Command).Assembly == assembly);
+            foreach (string CMD in commandsDict.Keys)
+            {
+                if (getCommandType(commandsDict[CMD].Command).Assembly == assembly)
+                    commandsDict.Remove(CMD);
+            }
         }
 
         public double GetCooldown(IRocketPlayer player, IRocketCommand command)
         {
-            RocketCommandCooldown c = cooldown.Where(rc => rc.Command == command && rc.Player.Id == player.Id).FirstOrDefault();
-            if (c == null) return -1;
+            if (!cooldown.TryGetValue((player.Id, command), out RocketCommandCooldown c) || c == null) return -1;
             double timeSinceExecution = (DateTime.Now - c.CommandRequested).TotalSeconds;
             if (c.ApplyingPermission.Cooldown <= timeSinceExecution)
             {
                 //Cooldown has it expired
-                cooldown.Remove(c);
+                cooldown.Remove((player.Id,command));
                 return -1;
             }
             else
@@ -190,7 +202,7 @@ namespace Rocket.Core.Commands
             Permission cooldownPermission = applyingPermissions.Where(p => p.Cooldown != 0).OrderByDescending(p => p.Cooldown).FirstOrDefault();
             if (cooldownPermission != null)
             {
-                cooldown.Add(new RocketCommandCooldown(player, command, cooldownPermission));
+                cooldown[(player.Id, command)] = new RocketCommandCooldown(player, command, cooldownPermission);
             }
         }
 
