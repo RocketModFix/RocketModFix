@@ -172,10 +172,16 @@ namespace Rocket.Core.Commands
         public void DeregisterFromAssembly(Assembly assembly)
         {
             commands.RemoveAll(rc => getCommandType(rc.Command).Assembly == assembly);
+
+            List<string> cmdsToRemove = new List<string>();
             foreach (string CMD in commandsDict.Keys)
             {
                 if (getCommandType(commandsDict[CMD].Command).Assembly == assembly)
-                    commandsDict.Remove(CMD);
+                    cmdsToRemove.Add(CMD);
+            }
+            foreach(string CMD in cmdsToRemove)
+            {
+                commandsDict.Remove(CMD);
             }
         }
 
