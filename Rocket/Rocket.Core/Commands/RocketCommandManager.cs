@@ -190,8 +190,8 @@ namespace Rocket.Core.Commands
 
         public double GetCooldown(IRocketPlayer player, IRocketCommand command)
         {
-            string key = string.Concat(player.Id, '.', command.Name.ToLower());
-            if (!cooldown.TryGetValue(key, out RocketCommandCooldown c) || c == null) return -1;
+            string key;
+            if (command == null || !cooldown.TryGetValue(key = string.Concat(player.Id, '.', command.Name.ToLower()), out RocketCommandCooldown c) || c == null) return -1;
             double timeSinceExecution = (DateTime.Now - c.CommandRequested).TotalSeconds;
             if (c.ApplyingPermission.Cooldown <= timeSinceExecution)
             {
