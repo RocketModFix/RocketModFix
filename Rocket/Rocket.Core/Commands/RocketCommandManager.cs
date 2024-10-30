@@ -81,8 +81,8 @@ namespace Rocket.Core.Commands
 
         public IRocketCommand GetCommand(string command)
         {
-            if (!commandsDict.TryGetValue(command.ToLower(), out RegisteredRocketCommand foundCommand))
-                foundCommand = commands.Where(c => c.Aliases.Select(a => a.ToLower()).Contains(command.ToLower())).FirstOrDefault();
+            commandsDict.TryGetValue(command.ToLower(), out RegisteredRocketCommand foundCommand);
+// MOVED into dictionary:                foundCommand = commands.Where(c => c.Aliases.Select(a => a.ToLower()).Contains(command.ToLower())).FirstOrDefault();
             return foundCommand;
         }
 
@@ -160,6 +160,14 @@ namespace Rocket.Core.Commands
             {
                 commands.Add(new RegisteredRocketCommand(mapping.Name.ToLower(), command));
                 commandsDict[mapping.Name.ToLower()] = new RegisteredRocketCommand(mapping.Name.ToLower(), command);
+                if (command.Aliases != null)
+                {
+                    foreach (string Alias in command.Aliases)
+                    {
+                        if (string.IsNullOrEmpty(Alias)) continue;
+                        commandsDict[Alias.ToLower()] = commandsDict[mapping.Name.ToLower()];
+                    }
+                }
                 Logging.Logger.Log("[registered] /" + mapping.Name.ToLower() + " (" + mapping.Class + ")", ConsoleColor.Green);
             }
         }
