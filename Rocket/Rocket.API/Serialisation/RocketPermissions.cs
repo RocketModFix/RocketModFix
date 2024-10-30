@@ -17,7 +17,8 @@ namespace Rocket.API.Serialisation
         [XmlArray("Groups")]
         [XmlArrayItem(ElementName = "Group")]
         public List<RocketPermissionsGroup> Groups = new List<RocketPermissionsGroup>();
-
+        private Dictionary<string,RocketPermissionsGroup> GroupsDict = new Dictionary<string,RocketPermissionsGroup>();
+        public Dictionary<string,RocketPermissionsGroup> GetGroups() { return GroupsDict; }
         public void LoadDefaults()
         {
             DefaultGroup = "default";

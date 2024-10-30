@@ -10,15 +10,17 @@ namespace Rocket.API
     {
         public static bool HasPermission(this IRocketPermissionsProvider rocketPermissionProvider,IRocketPlayer player, string permission)
         {
-            return rocketPermissionProvider.HasPermission(player, new List<string>() { permission });
+            return rocketPermissionProvider.HasPermission(player, new HashSet<string>() { permission });
         }
 
         public static bool HasPermission(this IRocketPermissionsProvider rocketPermissionProvider, IRocketPlayer player, IRocketCommand command)
         {
-            List<string> commandPermissions = command.Permissions;
-            commandPermissions.Add(command.Name);
-            commandPermissions.AddRange(command.Aliases);
-            commandPermissions = commandPermissions.Select(a => a.ToLower()).ToList();
+            HashSet<string> commandPermissions = new HashSet<string>(command.Permissions.Select(p => p.ToLower()));
+            commandPermissions.Add(command.Name.ToLower());
+            foreach (string alias in command.Aliases)
+            {
+                commandPermissions.Add(alias.ToLower());
+            }
             return rocketPermissionProvider.HasPermission(player, commandPermissions);
         }
 
@@ -40,6 +42,7 @@ namespace Rocket.API
     public interface IRocketPermissionsProvider
     {
         bool HasPermission(IRocketPlayer player, List<string> requestedPermissions);
+        bool HasPermission(IRocketPlayer player, HashSet<string> requestedPermissions);
 
         List<RocketPermissionsGroup> GetGroups(IRocketPlayer player, bool includeParentGroups);
         List<Permission> GetPermissions(IRocketPlayer player);
