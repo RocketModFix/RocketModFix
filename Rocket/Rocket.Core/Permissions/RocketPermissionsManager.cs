@@ -72,6 +72,10 @@ namespace Rocket.Core.Permissions
         {
             return helper.HasPermission(playerId, permissions);
         }
+        public bool HasPermission(IRocketPlayer player, HashSet<string> requestedPermissions)
+        {
+            return helper.HasPermission(player, requestedPermissions);
+        }
 
         public List<RocketPermissionsGroup> GetGroups(IRocketPlayer player, bool includeParentGroups)
         {

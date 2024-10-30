@@ -48,6 +48,15 @@ namespace Rocket.Core.Permissions
             return applyingPermissions.Count != 0;
         }
 
+        public bool HasPermission(IRocketPlayer player, HashSet<string> requestedPermissions)
+        {
+            if (player.IsAdmin) { return true; }
+
+            HashSet<Permission> applyingPermissions = this.GetPermissions(player, requestedPermissions);
+
+            return applyingPermissions.Count != 0;
+        }
+
         /// <summary>
         /// Separates from the usage of IRocketPlayer because it was causing obvious issues due to UnturnedPlayer reliance on Player. Does not check if you are admined.
         /// </summary>
@@ -57,6 +66,12 @@ namespace Rocket.Core.Permissions
         public bool HasPermission(string playerId, List<string> requestedPermissions)
         {
             List<Permission> applyingPermissions = this.GetPermissions(playerId, requestedPermissions);
+
+            return applyingPermissions.Count != 0;
+        }
+        public bool HasPermission(string playerId, HashSet<string> requestedPermissions)
+        {
+            HashSet<Permission> applyingPermissions = this.GetPermissions(playerId, requestedPermissions);
 
             return applyingPermissions.Count != 0;
         }
@@ -189,8 +204,39 @@ namespace Rocket.Core.Permissions
 
             return result.Distinct().ToList();
         }
+        public HashSet<Permission> GetPermissionHash(string playerId)
+        {
+            Dictionary<string, Permission> result = new Dictionary<string, Permission>();
+
+            List<RocketPermissionsGroup> playerGroups = this.GetGroups(playerId, true);
+            playerGroups.Reverse(); // because we need desc ordering
+
+            playerGroups.ForEach(group =>
+            {
+                group.Permissions.ForEach(permission =>
+                {
+
+                    if (permission.Name.StartsWith("-"))
+                    {
+                        result.Remove(permission.Name.Substring(1).ToLower());
+                    }
+                    else
+                    {
+                        result.Add(permission.Name.ToLower(), permission);
+                    }
+
+                });
+            });
+            HashSet<Permission> perms = new HashSet<Permission>();
+            foreach (string Perm in result.Keys) perms.Add(result[Perm]);
+            return perms;
+        }
 
         public List<Permission> GetPermissions(IRocketPlayer player, List<string> requestedPermissions)
+        {
+            return GetPermissions(player.Id, requestedPermissions);
+        }
+        public HashSet<Permission> GetPermissions(IRocketPlayer player, HashSet<string> requestedPermissions)
         {
             return GetPermissions(player.Id, requestedPermissions);
         }
@@ -226,6 +272,43 @@ namespace Rocket.Core.Permissions
             });
 
             return applyingPermissions.Distinct().ToList();
+        }
+
+        public HashSet<Permission> GetPermissions(string playerId, HashSet<string> requestedPermissions)
+        {
+            // Get player permissions as a HashSet for fast lookups
+            HashSet<Permission> playerPermissions = this.GetPermissionHash(playerId);
+            HashSet<Permission> applyingPermissions = new HashSet<Permission>();
+
+            // Check if any wildcard permission is present
+            if (playerPermissions.Any(p => p.Name == "*"))
+            {
+                applyingPermissions.Add(new Permission("*"));
+            }
+            foreach (var permission in playerPermissions)
+            {
+                if (requestedPermissions.Contains(permission.Name.ToLower()))
+                {
+                    applyingPermissions.Add(permission);
+                }
+
+                // Check for wildcard permissions (e.g., "command.*")
+                if (permission.Name.EndsWith(".*", StringComparison.InvariantCultureIgnoreCase))
+                {
+                    string basePermission = permission.Name.Substring(0, permission.Name.Length - 2); // Remove ".*"
+
+                    foreach (var requestedPermission in requestedPermissions)
+                    {
+                        // If the base permission matches the requested permission
+                        if (requestedPermission.StartsWith(basePermission, StringComparison.InvariantCultureIgnoreCase))
+                        {
+                            applyingPermissions.Add(permission);
+                        }
+                    }
+                }
+            }
+
+            return applyingPermissions; // Return the HashSet of matching permissions
         }
 
     }
