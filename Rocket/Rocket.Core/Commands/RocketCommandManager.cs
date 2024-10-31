@@ -191,7 +191,7 @@ namespace Rocket.Core.Commands
         public double GetCooldown(IRocketPlayer player, IRocketCommand command)
         {
             string key;
-            if (command == null || !cooldown.TryGetValue(key = string.Concat(player.Id, '.', command.Name.ToLower()), out RocketCommandCooldown c) || c == null) return -1;
+            if (command == null || !cooldown.TryGetValue(key = player.Id + '.' + command.Name.ToLower(), out RocketCommandCooldown c) || c == null) return -1;
             double timeSinceExecution = (DateTime.Now - c.CommandRequested).TotalSeconds;
             if (c.ApplyingPermission.Cooldown <= timeSinceExecution)
             {
@@ -211,7 +211,7 @@ namespace Rocket.Core.Commands
             Permission cooldownPermission = applyingPermissions.Where(p => p.Cooldown != 0).OrderByDescending(p => p.Cooldown).FirstOrDefault();
             if (cooldownPermission != null)
             {
-                cooldown.Add(string.Concat(player.Id, '.', command.Name.ToLower()), new RocketCommandCooldown(player, command, cooldownPermission));
+                cooldown[player.Id + '.' + command.Name.ToLower()] = new RocketCommandCooldown(player, command, cooldownPermission);
             }
         }
 
