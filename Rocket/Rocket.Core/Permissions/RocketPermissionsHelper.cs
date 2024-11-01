@@ -89,9 +89,10 @@ namespace Rocket.Core.Permissions
             RocketPermissionsGroup g = GetGroup(groupId);
             if (g == null) return RocketPermissionsProviderResult.GroupNotFound;
 
-            if (g.Members.FirstOrDefault(m => m == playerId) == null) return RocketPermissionsProviderResult.PlayerNotFound;
+            if (!g._Members.Contains(playerId)) return RocketPermissionsProviderResult.PlayerNotFound;
 
             g.Members.Remove(playerId);
+            g._Members.Remove(playerId);
             SaveGroup(g);
             return RocketPermissionsProviderResult.Success;
         }
@@ -106,9 +107,10 @@ namespace Rocket.Core.Permissions
             RocketPermissionsGroup g = GetGroup(groupId);
             if (g == null) return RocketPermissionsProviderResult.GroupNotFound;
 
-            if (g.Members.FirstOrDefault(m => m == playerId) != null) return RocketPermissionsProviderResult.DuplicateEntry;
+            if (g._Members.Contains(playerId)) return RocketPermissionsProviderResult.DuplicateEntry;
 
             g.Members.Add(playerId);
+            g._Members.Add(playerId);
             SaveGroup(g);
             return RocketPermissionsProviderResult.Success;
         }
