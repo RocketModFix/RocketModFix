@@ -9,7 +9,7 @@ namespace Rocket.API.Serialisation
     {
         public RocketPermissions()
         {
-            foreach (RocketPermissionsGroup _Group in Groups) GroupsDict[_Group.Id] = _Group;
+            foreach (RocketPermissionsGroup _Group in Groups) GroupsDict[_Group.Id.ToLower()] = _Group;
         }
 
         [XmlElement("DefaultGroup")]
@@ -27,7 +27,7 @@ namespace Rocket.API.Serialisation
                 new RocketPermissionsGroup("default","Guest",null, new List<string>() , new List<Permission>() { new Permission("p"),  new Permission("rocket")},"white"),
                 new RocketPermissionsGroup("vip","VIP", "default",new List<string>() { "76561198016438091" }, new List<Permission>() {  new Permission("effect"), new Permission("heal",120), new Permission("v",30) },"FF9900")
             };
-            foreach (RocketPermissionsGroup _Group in Groups) GroupsDict[_Group.Id] = _Group;
+            foreach (RocketPermissionsGroup _Group in Groups) GroupsDict[_Group.Id.ToLower()] = _Group;
         }
     }
 }
