@@ -9,6 +9,8 @@ namespace Rocket.API.Serialisation
     {
         public RocketPermissionsGroup()
         {
+            _Members = new HashSet<string>();
+            _Permissions = new Dictionary<string, Permission>();
         }
 
         public RocketPermissionsGroup(string id, string displayName, string parentGroup, List<string> members, List<Permission> permissions, string color = null, short priority = 100)
