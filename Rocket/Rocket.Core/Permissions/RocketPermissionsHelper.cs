@@ -218,11 +218,13 @@ namespace Rocket.Core.Permissions
 
                     if (permission.Name.StartsWith("-"))
                     {
-                        result.Remove(permission.Name.Substring(1).ToLower());
+                        string perm_key = permission.Name.Substring(1).ToLower();
+                        if (result.ContainsKey(perm_key))
+                            result.Remove(perm_key);
                     }
                     else
                     {
-                        result.Add(permission.Name.ToLower(), permission);
+                        result[permission.Name.ToLower()] = permission;
                     }
 
                 });
