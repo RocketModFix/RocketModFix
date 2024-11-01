@@ -163,8 +163,7 @@ namespace Rocket.Core.Permissions
                                                       .ToList() ?? new List<RocketPermissionsGroup>();
 
             // get first default group
-            RocketPermissionsGroup defaultGroup = this.permissions.Instance?.Groups?.OrderBy(x => x.Priority)
-                .FirstOrDefault(g => string.Equals(g.Id, this.permissions.Instance.DefaultGroup, StringComparison.CurrentCultureIgnoreCase));
+            RocketPermissionsGroup defaultGroup = this.GetGroup(permissions.Instance.DefaultGroup);
 
             // if exists, add to player groups
             if (defaultGroup != null) { groups.Add(defaultGroup); }
