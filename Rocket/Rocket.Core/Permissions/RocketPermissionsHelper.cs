@@ -76,8 +76,11 @@ namespace Rocket.Core.Permissions
             return applyingPermissions.Count != 0;
         }
 
-        internal RocketPermissionsGroup GetGroup(string groupId) => permissions.Instance.Groups.OrderBy(x => x.Priority)
-            .FirstOrDefault(g => string.Equals(g.Id, groupId, StringComparison.CurrentCultureIgnoreCase));
+        internal RocketPermissionsGroup GetGroup(string groupId)
+        {
+            permissions.Instance.GroupsDict.TryGetValue(groupId.ToLower(), out RocketPermissionsGroup Group);
+            return Group;
+        }
 
         internal RocketPermissionsProviderResult RemovePlayerFromGroup(string groupId, IRocketPlayer player)
         {
@@ -121,6 +124,7 @@ namespace Rocket.Core.Permissions
             if (g == null) return RocketPermissionsProviderResult.GroupNotFound;
 
             permissions.Instance.Groups.Remove(g);
+            permissions.Instance.GroupsDict.Remove(groupId.ToLower());
             permissions.Save();
             return RocketPermissionsProviderResult.Success;
         }
@@ -130,6 +134,7 @@ namespace Rocket.Core.Permissions
             int i = permissions.Instance.Groups.FindIndex(gr => gr.Id == group.Id);
             if (i < 0) return RocketPermissionsProviderResult.GroupNotFound;
             permissions.Instance.Groups[i] = group;
+            permissions.Instance.GroupsDict[group.Id.ToLower()] = group;
             permissions.Save();
             return RocketPermissionsProviderResult.Success;
         }
@@ -139,6 +144,7 @@ namespace Rocket.Core.Permissions
             int i = permissions.Instance.Groups.FindIndex(gr => gr.Id == group.Id);
             if (i != -1) return RocketPermissionsProviderResult.DuplicateEntry;
             permissions.Instance.Groups.Add(group);
+            permissions.Instance.GroupsDict[group.Id.ToLower()] = group;
             permissions.Save();
             return RocketPermissionsProviderResult.Success;
         }
