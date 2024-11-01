@@ -1,0 +1,15 @@
+D:\downloads\RocketModFix-4.21.4\RocketModFix-4.21.4\Rocket\Rocket.Core\bin\Release\netstandard2.1\Rocket.Core.deps.json
+D:\downloads\RocketModFix-4.21.4\RocketModFix-4.21.4\Rocket\Rocket.Core\bin\Release\netstandard2.1\Rocket.Core.dll
+D:\downloads\RocketModFix-4.21.4\RocketModFix-4.21.4\Rocket\Rocket.Core\bin\Release\netstandard2.1\Rocket.Core.pdb
+D:\downloads\RocketModFix-4.21.4\RocketModFix-4.21.4\Rocket\Rocket.Core\bin\Release\netstandard2.1\Rocket.Core.xml
+D:\downloads\RocketModFix-4.21.4\RocketModFix-4.21.4\Rocket\Rocket.Core\bin\Release\netstandard2.1\Rocket.API.dll
+D:\downloads\RocketModFix-4.21.4\RocketModFix-4.21.4\Rocket\Rocket.Core\bin\Release\netstandard2.1\Rocket.API.pdb
+D:\downloads\RocketModFix-4.21.4\RocketModFix-4.21.4\Rocket\Rocket.Core\bin\Release\netstandard2.1\Rocket.API.xml
+D:\downloads\RocketModFix-4.21.4\RocketModFix-4.21.4\Rocket\Rocket.Core\obj\Release\netstandard2.1\Rocket.Core.csproj.AssemblyReference.cache
+D:\downloads\RocketModFix-4.21.4\RocketModFix-4.21.4\Rocket\Rocket.Core\obj\Release\netstandard2.1\Rocket.Core.AssemblyInfoInputs.cache
+D:\downloads\RocketModFix-4.21.4\RocketModFix-4.21.4\Rocket\Rocket.Core\obj\Release\netstandard2.1\Rocket.Core.AssemblyInfo.cs
+D:\downloads\RocketModFix-4.21.4\RocketModFix-4.21.4\Rocket\Rocket.Core\obj\Release\netstandard2.1\Rocket.Core.csproj.CoreCompileInputs.cache
+D:\downloads\RocketModFix-4.21.4\RocketModFix-4.21.4\Rocket\Rocket.Core\obj\Release\netstandard2.1\Rocket.Core.csproj.CopyComplete
+D:\downloads\RocketModFix-4.21.4\RocketModFix-4.21.4\Rocket\Rocket.Core\obj\Release\netstandard2.1\Rocket.Core.dll
+D:\downloads\RocketModFix-4.21.4\RocketModFix-4.21.4\Rocket\Rocket.Core\obj\Release\netstandard2.1\Rocket.Core.xml
+D:\downloads\RocketModFix-4.21.4\RocketModFix-4.21.4\Rocket\Rocket.Core\obj\Release\netstandard2.1\Rocket.Core.pdb

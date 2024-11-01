@@ -1,0 +1,214 @@
+{
+  "format": 1,
+  "restore": {
+    "D:\\downloads\\RocketModFix-4.21.4\\RocketModFix-4.21.4\\Rocket\\Rocket.Core\\Rocket.Core.csproj": {}
+  },
+  "projects": {
+    "D:\\downloads\\RocketModFix-4.21.4\\RocketModFix-4.21.4\\Rocket\\Rocket.API\\Rocket.API.csproj": {
+      "version": "0.0.0",
+      "restore": {
+        "projectUniqueName": "D:\\downloads\\RocketModFix-4.21.4\\RocketModFix-4.21.4\\Rocket\\Rocket.API\\Rocket.API.csproj",
+        "projectName": "RocketModFix.Rocket.API",
+        "projectPath": "D:\\downloads\\RocketModFix-4.21.4\\RocketModFix-4.21.4\\Rocket\\Rocket.API\\Rocket.API.csproj",
+        "packagesPath": "C:\\Users\\jonat\\.nuget\\packages\\",
+        "outputPath": "D:\\downloads\\RocketModFix-4.21.4\\RocketModFix-4.21.4\\Rocket\\Rocket.API\\obj\\",
+        "projectStyle": "PackageReference",
+        "crossTargeting": true,
+        "fallbackFolders": [
+          "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder"
+        ],
+        "configFilePaths": [
+          "C:\\Users\\jonat\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+        ],
+        "originalTargetFrameworks": [
+          "net461",
+          "netstandard2.1"
+        ],
+        "sources": {
+          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net461": {
+            "targetAlias": "net461",
+            "projectReferences": {}
+          },
+          "netstandard2.1": {
+            "targetAlias": "netstandard2.1",
+            "projectReferences": {}
+          }
+        },
+        "warningProperties": {
+          "noWarn": [
+            "NU1701",
+            "NU1702"
+          ],
+          "warnAsError": [
+            "NU1605"
+          ]
+        }
+      },
+      "frameworks": {
+        "net461": {
+          "targetAlias": "net461",
+          "dependencies": {
+            "RocketModFix.UnityEngine.Redist": {
+              "suppressParent": "All",
+              "target": "Package",
+              "version": "[2021.3.28.1, )"
+            },
+            "RocketModFix.Unturned.Redist.Server": {
+              "suppressParent": "All",
+              "target": "Package",
+              "version": "[3.24.6.1, )"
+            }
+          },
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\5.0.302\\RuntimeIdentifierGraph.json"
+        },
+        "netstandard2.1": {
+          "targetAlias": "netstandard2.1",
+          "dependencies": {
+            "RocketModFix.UnityEngine.Redist": {
+              "suppressParent": "All",
+              "target": "Package",
+              "version": "[2021.3.28.1, )"
+            },
+            "RocketModFix.Unturned.Redist.Server": {
+              "suppressParent": "All",
+              "target": "Package",
+              "version": "[3.24.6.1, )"
+            }
+          },
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "frameworkReferences": {
+            "NETStandard.Library": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\5.0.302\\RuntimeIdentifierGraph.json"
+        }
+      }
+    },
+    "D:\\downloads\\RocketModFix-4.21.4\\RocketModFix-4.21.4\\Rocket\\Rocket.Core\\Rocket.Core.csproj": {
+      "version": "0.0.0",
+      "restore": {
+        "projectUniqueName": "D:\\downloads\\RocketModFix-4.21.4\\RocketModFix-4.21.4\\Rocket\\Rocket.Core\\Rocket.Core.csproj",
+        "projectName": "RocketModFix.Rocket.Core",
+        "projectPath": "D:\\downloads\\RocketModFix-4.21.4\\RocketModFix-4.21.4\\Rocket\\Rocket.Core\\Rocket.Core.csproj",
+        "packagesPath": "C:\\Users\\jonat\\.nuget\\packages\\",
+        "outputPath": "D:\\downloads\\RocketModFix-4.21.4\\RocketModFix-4.21.4\\Rocket\\Rocket.Core\\obj\\",
+        "projectStyle": "PackageReference",
+        "crossTargeting": true,
+        "fallbackFolders": [
+          "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder"
+        ],
+        "configFilePaths": [
+          "C:\\Users\\jonat\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+        ],
+        "originalTargetFrameworks": [
+          "net461",
+          "netstandard2.1"
+        ],
+        "sources": {
+          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net461": {
+            "targetAlias": "net461",
+            "projectReferences": {
+              "D:\\downloads\\RocketModFix-4.21.4\\RocketModFix-4.21.4\\Rocket\\Rocket.API\\Rocket.API.csproj": {
+                "projectPath": "D:\\downloads\\RocketModFix-4.21.4\\RocketModFix-4.21.4\\Rocket\\Rocket.API\\Rocket.API.csproj"
+              }
+            }
+          },
+          "netstandard2.1": {
+            "targetAlias": "netstandard2.1",
+            "projectReferences": {
+              "D:\\downloads\\RocketModFix-4.21.4\\RocketModFix-4.21.4\\Rocket\\Rocket.API\\Rocket.API.csproj": {
+                "projectPath": "D:\\downloads\\RocketModFix-4.21.4\\RocketModFix-4.21.4\\Rocket\\Rocket.API\\Rocket.API.csproj"
+              }
+            }
+          }
+        },
+        "warningProperties": {
+          "noWarn": [
+            "NU1701",
+            "NU1702"
+          ],
+          "warnAsError": [
+            "NU1605"
+          ]
+        }
+      },
+      "frameworks": {
+        "net461": {
+          "targetAlias": "net461",
+          "dependencies": {
+            "Newtonsoft.Json": {
+              "target": "Package",
+              "version": "[13.0.3, )"
+            },
+            "RocketModFix.UnityEngine.Redist": {
+              "suppressParent": "All",
+              "target": "Package",
+              "version": "[2021.3.28.1, )"
+            },
+            "RocketModFix.Unturned.Redist.Server": {
+              "suppressParent": "All",
+              "target": "Package",
+              "version": "[3.24.6.1, )"
+            }
+          },
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\5.0.302\\RuntimeIdentifierGraph.json"
+        },
+        "netstandard2.1": {
+          "targetAlias": "netstandard2.1",
+          "dependencies": {
+            "Newtonsoft.Json": {
+              "target": "Package",
+              "version": "[13.0.3, )"
+            },
+            "RocketModFix.UnityEngine.Redist": {
+              "suppressParent": "All",
+              "target": "Package",
+              "version": "[2021.3.28.1, )"
+            },
+            "RocketModFix.Unturned.Redist.Server": {
+              "suppressParent": "All",
+              "target": "Package",
+              "version": "[3.24.6.1, )"
+            }
+          },
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "frameworkReferences": {
+            "NETStandard.Library": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\5.0.302\\RuntimeIdentifierGraph.json"
+        }
+      }
+    }
+  }
+}
