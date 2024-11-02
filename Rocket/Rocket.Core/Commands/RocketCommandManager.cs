@@ -18,8 +18,8 @@ namespace Rocket.Core.Commands
     public class RocketCommandManager : MonoBehaviour
     {
         private readonly List<RegisteredRocketCommand> commands = new List<RegisteredRocketCommand>();
-        private readonly Dictionary<string, RegisteredRocketCommand> commandsDict = new Dictionary<string, RegisteredRocketCommand>();
-        internal Dictionary<string, RocketCommandCooldown> cooldown = new Dictionary<string, RocketCommandCooldown>();
+        private readonly Dictionary<string, RegisteredRocketCommand> commandsDict = new Dictionary<string, RegisteredRocketCommand>(StringComparer.OrdinalIgnoreCase);
+        internal Dictionary<string, RocketCommandCooldown> cooldown = new Dictionary<string, RocketCommandCooldown>(StringComparer.OrdinalIgnoreCase);
         public ReadOnlyCollection<RegisteredRocketCommand> Commands { get; internal set; }
         private XMLFileAsset<RocketCommands> commandMappings;
 
@@ -81,7 +81,7 @@ namespace Rocket.Core.Commands
 
         public IRocketCommand GetCommand(string command)
         {
-            commandsDict.TryGetValue(command.ToLower(), out RegisteredRocketCommand foundCommand);
+            commandsDict.TryGetValue(command, out RegisteredRocketCommand foundCommand);
 // MOVED into dictionary:                foundCommand = commands.Where(c => c.Aliases.Select(a => a.ToLower()).Contains(command.ToLower())).FirstOrDefault();
             return foundCommand;
         }
@@ -159,13 +159,13 @@ namespace Rocket.Core.Commands
             foreach(CommandMapping mapping in commandMappings.Instance.CommandMappings.Where(m => m.Class == className && m.Enabled))
             {
                 commands.Add(new RegisteredRocketCommand(mapping.Name.ToLower(), command));
-                commandsDict[mapping.Name.ToLower()] = new RegisteredRocketCommand(mapping.Name.ToLower(), command);
+                commandsDict[mapping.Name] = new RegisteredRocketCommand(mapping.Name.ToLower(), command);
                 if (command.Aliases != null)
                 {
                     foreach (string Alias in command.Aliases)
                     {
                         if (string.IsNullOrEmpty(Alias)) continue;
-                        commandsDict[Alias.ToLower()] = commandsDict[mapping.Name.ToLower()];
+                        commandsDict[Alias] = commandsDict[mapping.Name.ToLower()];
                     }
                 }
                 Logging.Logger.Log("[registered] /" + mapping.Name.ToLower() + " (" + mapping.Class + ")", ConsoleColor.Green);
@@ -191,7 +191,7 @@ namespace Rocket.Core.Commands
         public double GetCooldown(IRocketPlayer player, IRocketCommand command)
         {
             string key;
-            if (command == null || !cooldown.TryGetValue(key = player.Id + '.' + command.Name.ToLower(), out RocketCommandCooldown c) || c == null) return -1;
+            if (command == null || !cooldown.TryGetValue(key = player.Id + '.' + command.Name, out RocketCommandCooldown c) || c == null) return -1;
             double timeSinceExecution = (DateTime.Now - c.CommandRequested).TotalSeconds;
             if (c.ApplyingPermission.Cooldown <= timeSinceExecution)
             {
@@ -211,7 +211,7 @@ namespace Rocket.Core.Commands
             Permission cooldownPermission = applyingPermissions.Where(p => p.Cooldown != 0).OrderByDescending(p => p.Cooldown).FirstOrDefault();
             if (cooldownPermission != null)
             {
-                cooldown[player.Id + '.' + command.Name.ToLower()] = new RocketCommandCooldown(player, command, cooldownPermission);
+                cooldown[player.Id + '.' + command.Name] = new RocketCommandCooldown(player, command, cooldownPermission);
             }
         }
 

@@ -16,14 +16,24 @@ namespace Rocket.Core.Permissions
             this.permissions = permissions;
         }
 
-        public List<RocketPermissionsGroup> GetGroupsByIds(List<string> ids) => this.permissions.Instance.Groups.OrderBy(x => x.Priority)
-            .Where(g => ids.Select(i => i.ToLower()).Contains(g.Id.ToLower())).ToList();
+        public List<RocketPermissionsGroup> GetGroupsByIds(List<string> ids)
+        {
+            var groups = new List<RocketPermissionsGroup>();
+            foreach (var id in ids)
+            {
+                var group = GetGroup(id);
+                if (group != null)
+                {
+                    groups.Add(group);
+                }
+            }
+            return groups.OrderBy(x => x.Priority).ToList();
+        }
 
         public List<string> GetParentGroups(string parentGroup, string currentGroup)
         {
             var allGroups = new List<string>();
-            RocketPermissionsGroup group = this.permissions.Instance.Groups.OrderBy(x => x.Priority)
-                .FirstOrDefault(g => string.Equals(g.Id, parentGroup, StringComparison.CurrentCultureIgnoreCase));
+            RocketPermissionsGroup group = this.GetGroup(parentGroup);
 
             if (group == null || string.Equals(group.Id, currentGroup, StringComparison.CurrentCultureIgnoreCase)) { return allGroups; }
 
@@ -78,7 +88,7 @@ namespace Rocket.Core.Permissions
 
         internal RocketPermissionsGroup GetGroup(string groupId)
         {
-            permissions.Instance.GroupsDict.TryGetValue(groupId.ToLower(), out RocketPermissionsGroup Group);
+            permissions.Instance.GroupsDict.TryGetValue(groupId, out RocketPermissionsGroup Group);
             return Group;
         }
 
@@ -124,7 +134,7 @@ namespace Rocket.Core.Permissions
             if (g == null) return RocketPermissionsProviderResult.GroupNotFound;
 
             permissions.Instance.Groups.Remove(g);
-            permissions.Instance.GroupsDict.Remove(groupId.ToLower());
+            permissions.Instance.GroupsDict.Remove(groupId);
             permissions.Save();
             return RocketPermissionsProviderResult.Success;
         }
@@ -134,7 +144,7 @@ namespace Rocket.Core.Permissions
             int i = permissions.Instance.Groups.FindIndex(gr => gr.Id == group.Id);
             if (i < 0) return RocketPermissionsProviderResult.GroupNotFound;
             permissions.Instance.Groups[i] = group;
-            permissions.Instance.GroupsDict[group.Id.ToLower()] = group;
+            permissions.Instance.GroupsDict[group.Id] = group;
             permissions.Save();
             return RocketPermissionsProviderResult.Success;
         }
@@ -144,7 +154,7 @@ namespace Rocket.Core.Permissions
             int i = permissions.Instance.Groups.FindIndex(gr => gr.Id == group.Id);
             if (i != -1) return RocketPermissionsProviderResult.DuplicateEntry;
             permissions.Instance.Groups.Add(group);
-            permissions.Instance.GroupsDict[group.Id.ToLower()] = group;
+            permissions.Instance.GroupsDict[group.Id] = group;
             permissions.Save();
             return RocketPermissionsProviderResult.Success;
         }
@@ -213,7 +223,7 @@ namespace Rocket.Core.Permissions
         }
         public HashSet<Permission> GetPermissionHash(string playerId)
         {
-            Dictionary<string, Permission> result = new Dictionary<string, Permission>();
+            Dictionary<string, Permission> result = new Dictionary<string, Permission>(StringComparer.OrdinalIgnoreCase);
 
             List<RocketPermissionsGroup> playerGroups = this.GetGroups(playerId, true);
             playerGroups.Reverse(); // because we need desc ordering
@@ -225,13 +235,13 @@ namespace Rocket.Core.Permissions
 
                     if (permission.Name.StartsWith("-"))
                     {
-                        string perm_key = permission.Name.Substring(1).ToLower();
+                        string perm_key = permission.Name.Substring(1);
                         if (result.ContainsKey(perm_key))
                             result.Remove(perm_key);
                     }
                     else
                     {
-                        result[permission.Name.ToLower()] = permission;
+                        result[permission.Name] = permission;
                     }
 
                 });
