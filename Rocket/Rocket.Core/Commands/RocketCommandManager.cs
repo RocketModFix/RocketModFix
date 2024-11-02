@@ -36,7 +36,7 @@ namespace Rocket.Core.Commands
         }
         public RocketCommandManager() { }
 
-        public void Awake()
+        private void Awake()
         {
             Commands = commands.AsReadOnly();
             commandMappings = new XMLFileAsset<RocketCommands>(Environment.CommandsFile);
