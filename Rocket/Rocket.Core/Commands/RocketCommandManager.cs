@@ -30,9 +30,13 @@ namespace Rocket.Core.Commands
         {
             commandMappings.Load();
             checkCommandMappings();
+            ReadOnlyCollection<RegisteredRocketCommand> tmp = commands.ToList().AsReadOnly();
+            foreach (RegisteredRocketCommand ReregCmd in tmp) DeRegisterCommand(ReregCmd);
+            foreach (RegisteredRocketCommand ReregCmd in tmp) Register(ReregCmd);
         }
+        public RocketCommandManager() { }
 
-        private void Awake()
+        public void Awake()
         {
             Commands = commands.AsReadOnly();
             commandMappings = new XMLFileAsset<RocketCommands>(Environment.CommandsFile);
@@ -180,6 +184,21 @@ namespace Rocket.Core.Commands
             foreach (string CMD in commandsDict.Keys)
             {
                 if (getCommandType(commandsDict[CMD].Command).Assembly == assembly)
+                    cmdsToRemove.Add(CMD);
+            }
+            foreach (string CMD in cmdsToRemove)
+            {
+                commandsDict.Remove(CMD);
+            }
+        }
+        public void DeRegisterCommand(IRocketCommand Command)
+        {
+            commands.RemoveAll(rc => rc.Command == Command);
+
+            List<string> cmdsToRemove = new List<string>();
+            foreach (string CMD in commandsDict.Keys)
+            {
+                if (commandsDict[CMD].Command == Command)
                     cmdsToRemove.Add(CMD);
             }
             foreach (string CMD in cmdsToRemove)
