@@ -57,5 +57,7 @@ namespace Rocket.API
         RocketPermissionsProviderResult DeleteGroup(string groupId);
 
         void Reload();
+        void ManualLoad();
+        System.Collections.IEnumerator ManualUpdate();
     }
 }

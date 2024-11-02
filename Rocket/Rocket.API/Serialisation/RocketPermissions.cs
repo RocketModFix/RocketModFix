@@ -19,7 +19,7 @@ namespace Rocket.API.Serialisation
         [XmlArrayItem(ElementName = "Group")]
         public List<RocketPermissionsGroup> Groups = new List<RocketPermissionsGroup>();
         [XmlIgnore]
-        public Dictionary<string,RocketPermissionsGroup> GroupsDict = new Dictionary<string,RocketPermissionsGroup>();
+        public Dictionary<string,RocketPermissionsGroup> GroupsDict = new Dictionary<string,RocketPermissionsGroup>(StringComparer.OrdinalIgnoreCase);
         public void LoadDefaults()
         {
             DefaultGroup = "default";
