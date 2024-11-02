@@ -72,7 +72,11 @@ namespace Rocket.Core
                 Settings = new XMLFileAsset<RocketSettings>(Environment.SettingsFile);
                 Translation = new XMLFileAsset<TranslationList>(String.Format(Environment.TranslationFile, Settings.Instance.LanguageCode), new Type[] { typeof(TranslationList), typeof(TranslationListEntry) }, defaultTranslations);
                 defaultTranslations.AddUnknownEntries(Translation);
-                Permissions = gameObject.TryAddComponent<RocketPermissionsManager>();
+                Permissions = new RocketPermissionsManager();
+                Permissions.ManualLoad();
+                if (Settings.Instance.WebPermissions.Enabled) {
+                    StartCoroutine(Permissions.ManualUpdate());
+                }
                 Plugins = gameObject.TryAddComponent<RocketPluginManager>();
                 Commands = gameObject.TryAddComponent<RocketCommandManager>();
 

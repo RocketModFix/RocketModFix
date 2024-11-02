@@ -14,6 +14,7 @@ namespace Rocket.Core.Permissions
         public RocketPermissionsHelper(Asset<RocketPermissions> permissions)
         {
             this.permissions = permissions;
+            foreach (RocketPermissionsGroup _Group in this.permissions.Instance.Groups) this.permissions.Instance.GroupsDict[_Group.Id] = _Group;
         }
 
         public List<RocketPermissionsGroup> GetGroupsByIds(List<string> ids)
@@ -88,7 +89,8 @@ namespace Rocket.Core.Permissions
 
         internal RocketPermissionsGroup GetGroup(string groupId)
         {
-            permissions.Instance.GroupsDict.TryGetValue(groupId, out RocketPermissionsGroup Group);
+            RocketPermissionsGroup Group = null;
+            if(!string.IsNullOrEmpty(groupId)) this.permissions.Instance.GroupsDict.TryGetValue(groupId, out Group);
             return Group;
         }
 
@@ -173,7 +175,7 @@ namespace Rocket.Core.Permissions
                                                       .ToList() ?? new List<RocketPermissionsGroup>();
 
             // get first default group
-            RocketPermissionsGroup defaultGroup = this.GetGroup(permissions.Instance.DefaultGroup);
+            RocketPermissionsGroup defaultGroup = this.GetGroup(this.permissions.Instance.DefaultGroup);
 
             // if exists, add to player groups
             if (defaultGroup != null) { groups.Add(defaultGroup); }

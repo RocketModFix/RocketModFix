@@ -61,6 +61,32 @@ namespace Rocket.Core.Permissions
         public void Reload()
         {
             helper.permissions.Load();
+            foreach (RocketPermissionsGroup _Group in helper.permissions.Instance.Groups) helper.permissions.Instance.GroupsDict[_Group.Id] = _Group;
+        }
+
+        public void ManualLoad() { Start(); }
+        public System.Collections.IEnumerator ManualUpdate() {
+            while (R.Settings.Instance.WebPermissions.Enabled)
+            {
+                if (updateWebPermissions)
+                {
+                    updateWebPermissions = false;
+                    try
+                    {
+                        helper.permissions.Load((IAsset<RocketPermissions> asset) =>
+                        {
+                            updateWebPermissions = true;
+                        });
+                    }
+                    catch (Exception ex)
+                    {
+                        updateWebPermissions = true;
+                        Logging.Logger.LogException(ex);
+                    }
+                }
+                yield return new WaitForSeconds(R.Settings.Instance.WebPermissions.Interval);
+            }
+            yield break;
         }
 
         public bool HasPermission(IRocketPlayer player, List<string> permissions)
