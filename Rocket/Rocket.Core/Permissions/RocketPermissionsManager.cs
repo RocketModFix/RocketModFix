@@ -61,6 +61,7 @@ namespace Rocket.Core.Permissions
         public void Reload()
         {
             helper.permissions.Load();
+            helper.permissions.Instance.GroupsDict.Clear();
             foreach (RocketPermissionsGroup _Group in helper.permissions.Instance.Groups) helper.permissions.Instance.GroupsDict[_Group.Id] = _Group;
         }
 
