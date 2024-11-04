@@ -169,7 +169,8 @@ namespace Rocket.Core.Commands
                     foreach (string Alias in command.Aliases)
                     {
                         if (string.IsNullOrEmpty(Alias)) continue;
-                        commandsDict[Alias] = commandsDict[mapping.Name];
+                        if(!commandsDict.ContainsKey(Alias))
+                            commandsDict[Alias] = commandsDict[mapping.Name];
                     }
                 }
                 Logging.Logger.Log("[registered] /" + mapping.Name.ToLower() + " (" + mapping.Class + ")", ConsoleColor.Green);
