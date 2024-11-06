@@ -13,7 +13,7 @@ namespace Rocket.Core.Permissions
     {
         private RocketPermissionsHelper helper;
 
-        private void Start()
+        private void Awake()
         {
             try
             {
@@ -65,7 +65,7 @@ namespace Rocket.Core.Permissions
             foreach (RocketPermissionsGroup _Group in helper.permissions.Instance.Groups) helper.permissions.Instance.GroupsDict[_Group.Id] = _Group;
         }
 
-        public void ManualLoad() { Start(); }
+        public void ManualLoad() { Awake(); }
         public System.Collections.IEnumerator ManualUpdate() {
             while (R.Settings.Instance.WebPermissions.Enabled)
             {

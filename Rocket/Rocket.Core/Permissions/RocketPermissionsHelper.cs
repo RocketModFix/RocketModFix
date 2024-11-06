@@ -15,6 +15,7 @@ namespace Rocket.Core.Permissions
         {
             this.permissions = permissions;
             foreach (RocketPermissionsGroup _Group in this.permissions.Instance.Groups) this.permissions.Instance.GroupsDict[_Group.Id] = _Group;
+            Logging.Logger.Log("Loaded permissions with " + this.permissions.Instance.GroupsDict.Count + " groups.");
         }
 
         public List<RocketPermissionsGroup> GetGroupsByIds(List<string> ids)
