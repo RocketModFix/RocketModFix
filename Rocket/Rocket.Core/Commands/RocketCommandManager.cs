@@ -28,11 +28,11 @@ namespace Rocket.Core.Commands
 
         internal void Reload()
         {
-            commandMappings = new XMLFileAsset<RocketCommands>(Environment.CommandsFile);
+            commandMappings.Load();
             checkCommandMappings();
             ReadOnlyCollection<RegisteredRocketCommand> tmp = commands.ToList().AsReadOnly();
-            foreach (RegisteredRocketCommand ReregCmd in tmp) DeRegisterCommand(ReregCmd);
-            foreach (RegisteredRocketCommand ReregCmd in tmp) Register(ReregCmd);
+            foreach (RegisteredRocketCommand ReregCmd in tmp) DeRegisterCommand(ReregCmd.Command);
+            foreach (RegisteredRocketCommand ReregCmd in tmp) Register(ReregCmd.Command);
         }
         public RocketCommandManager() { }
 
