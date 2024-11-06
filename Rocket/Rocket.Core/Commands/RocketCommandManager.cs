@@ -28,7 +28,7 @@ namespace Rocket.Core.Commands
 
         internal void Reload()
         {
-            commandMappings.Load();
+            commandMappings = new XMLFileAsset<RocketCommands>(Environment.CommandsFile);
             checkCommandMappings();
             ReadOnlyCollection<RegisteredRocketCommand> tmp = commands.ToList().AsReadOnly();
             foreach (RegisteredRocketCommand ReregCmd in tmp) DeRegisterCommand(ReregCmd);
@@ -232,6 +232,19 @@ namespace Rocket.Core.Commands
             if (cooldownPermission != null)
             {
                 cooldown[player.Id + '.' + command.Name] = new RocketCommandCooldown(player, command, cooldownPermission);
+            }
+        }
+
+        public void ClearInactiveCooldowns()
+        {
+            HashSet<string> IdsOnline = new HashSet<string>(SDG.Unturned.Provider.clients.Select(a => a.playerID.steamID.ToString()));
+            foreach(string Id in cooldown.Keys)
+            {
+                string[] split = Id.Split('.');
+                if (IdsOnline.Contains(split[0])) continue; // Player is online, do not touch. To prevent race conditions if running this function async
+                RocketPlayer player = new RocketPlayer(split[0]);
+                IRocketCommand Cmd = GetCommand(split[1]);
+                GetCooldown(player, Cmd);
             }
         }
 

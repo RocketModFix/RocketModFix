@@ -9,8 +9,6 @@ namespace Rocket.API.Serialisation
     {
         public RocketPermissionsGroup()
         {
-            _Members = new HashSet<string>();
-            _Permissions = new Dictionary<string, Permission>();
         }
 
         public RocketPermissionsGroup(string id, string displayName, string parentGroup, List<string> members, List<Permission> permissions, string color = null, short priority = 100)
@@ -23,6 +21,11 @@ namespace Rocket.API.Serialisation
             Color = color;
             Priority = priority;
             _Members = new HashSet<string>(members);
+            foreach (string member in members)
+            {
+                _Members.Add(member);
+            }
+
             _Permissions = new Dictionary<string, Permission>();
             foreach(Permission perm in permissions)
             {
@@ -78,10 +81,10 @@ namespace Rocket.API.Serialisation
         }
 
         [XmlIgnore]
-        public HashSet<string> _Members;
+        public HashSet<string> _Members = new HashSet<string>();
 
         [XmlIgnore]
-        public Dictionary<string,Permission> _Permissions;
+        public Dictionary<string,Permission> _Permissions = new Dictionary<string, Permission>();
 
 
         [XmlElement("ParentGroup")]

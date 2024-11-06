@@ -12,8 +12,10 @@ namespace Rocket.Core.Utils
         private static int numThreads;
         private static bool awake = false;
 
+        private List<Action> currentActions = new List<Action>();
         private static List<Action> actions = new List<Action>();
         private static List<DelayedQueueItem> delayed = new List<DelayedQueueItem>();
+        private List<DelayedQueueItem> currentDelayed = new List<DelayedQueueItem>();
 
         public struct DelayedQueueItem
         {
@@ -80,7 +82,9 @@ namespace Rocket.Core.Utils
         {
             if (!awake) return;
 
-            List<Action> currentActions = new List<Action>();
+            currentActions.Clear();
+            currentDelayed.Clear();
+            
             lock (actions)
             {
                 currentActions.AddRange(actions);
@@ -98,7 +102,7 @@ namespace Rocket.Core.Utils
                 }
             }
 
-            List<DelayedQueueItem> currentDelayed = new List<DelayedQueueItem>();
+            
             lock (delayed)
             {
                 currentDelayed.AddRange(delayed.Where(d => d.time <= Time.time));
