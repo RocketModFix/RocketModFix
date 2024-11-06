@@ -14,8 +14,15 @@ namespace Rocket.Core.Permissions
         public RocketPermissionsHelper(Asset<RocketPermissions> permissions)
         {
             this.permissions = permissions;
-            foreach (RocketPermissionsGroup _Group in this.permissions.Instance.Groups) this.permissions.Instance.GroupsDict[_Group.Id] = _Group;
-            Logging.Logger.Log("Loaded permissions with " + this.permissions.Instance.GroupsDict.Count + " groups.");
+            foreach (RocketPermissionsGroup _Group in this.permissions.Instance.Groups)
+            {
+                _Group._Members = new HashSet<string>(_Group.Members);
+                foreach (Permission perm in _Group.Permissions)
+                {
+                    _Group._Permissions[perm.Name] = perm;
+                }
+                this.permissions.Instance.GroupsDict[_Group.Id] = _Group;
+            }
         }
 
         public List<RocketPermissionsGroup> GetGroupsByIds(List<string> ids)
