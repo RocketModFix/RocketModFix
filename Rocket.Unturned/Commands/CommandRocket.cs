@@ -94,6 +94,11 @@ namespace Rocket.Unturned.Commands
                         R.ReloadCmds();
                         UnturnedChat.Say(caller, U.Translate("command_rocket_reloaded_commands"));
                         break;
+                    case "gc":
+                        if (caller != null && !caller.HasPermission("rocket.gc")) return;
+                        R.Commands.ClearInactiveCooldowns();
+                        UnturnedChat.Say(caller, U.Translate("command_rocket_gc"));
+                        break;
                 }
             }
 
