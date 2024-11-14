@@ -238,7 +238,7 @@ namespace Rocket.Core.Commands
         public void ClearInactiveCooldowns()
         {
             HashSet<string> IdsOnline = new HashSet<string>(SDG.Unturned.Provider.clients.Select(a => a.playerID.steamID.ToString()));
-            foreach(string Id in cooldown.Keys)
+            foreach(string Id in cooldown.Keys.ToArray())
             {
                 string[] split = Id.Split('.');
                 if (IdsOnline.Contains(split[0])) continue; // Player is online, do not touch. To prevent race conditions if running this function async

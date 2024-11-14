@@ -260,6 +260,33 @@ namespace Rocket.Core.Permissions
             foreach (string Perm in result.Keys) perms.Add(result[Perm]);
             return perms;
         }
+        public Dictionary<string, Permission> GetPermissionDict(string playerId)
+        {
+            Dictionary<string, Permission> result = new Dictionary<string, Permission>(StringComparer.OrdinalIgnoreCase);
+
+            List<RocketPermissionsGroup> playerGroups = this.GetGroups(playerId, true);
+            playerGroups.Reverse(); // because we need desc ordering
+
+            playerGroups.ForEach(group =>
+            {
+                group.Permissions.ForEach(permission =>
+                {
+
+                    if (permission.Name.StartsWith("-"))
+                    {
+                        string perm_key = permission.Name.Substring(1);
+                        if (result.ContainsKey(perm_key))
+                            result.Remove(perm_key);
+                    }
+                    else
+                    {
+                        result[permission.Name] = permission;
+                    }
+
+                });
+            });
+            return result;
+        }
 
         public List<Permission> GetPermissions(IRocketPlayer player, List<string> requestedPermissions)
         {
