@@ -64,7 +64,7 @@ namespace Rocket.Core.Permissions
             helper.permissions.Instance.GroupsDict.Clear();
             foreach (RocketPermissionsGroup _Group in helper.permissions.Instance.Groups) helper.permissions.Instance.GroupsDict[_Group.Id] = _Group;
         }
-
+        /*
         public void ManualLoad() { Awake(); }
         public System.Collections.IEnumerator ManualUpdate() {
             while (R.Settings.Instance.WebPermissions.Enabled)
@@ -88,7 +88,7 @@ namespace Rocket.Core.Permissions
                 yield return new WaitForSeconds(R.Settings.Instance.WebPermissions.Interval);
             }
             yield break;
-        }
+        }*/
 
         public bool HasPermission(IRocketPlayer player, List<string> permissions)
         {
@@ -99,10 +99,10 @@ namespace Rocket.Core.Permissions
         {
             return helper.HasPermission(playerId, permissions);
         }
-        public bool HasPermission(IRocketPlayer player, HashSet<string> requestedPermissions)
+        /*public bool HasPermission(IRocketPlayer player, HashSet<string> requestedPermissions)
         {
             return helper.HasPermission(player, requestedPermissions);
-        }
+        }*/
 
         public List<RocketPermissionsGroup> GetGroups(IRocketPlayer player, bool includeParentGroups)
         {
