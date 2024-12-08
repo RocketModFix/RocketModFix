@@ -1,42 +1,44 @@
 using SDG.Unturned;
 using Steamworks;
 
-namespace Rocket.Unturned.Helpers;
-
-internal static class RocketUtilities
+namespace Rocket.Unturned.Helpers
 {
-    public static bool TryGetSteamIdFromText(string text, out CSteamID? steamId)
+
+    internal static class RocketUtilities
     {
-        steamId = null;
-        if (text.StartsWith("7656"))
+        public static bool TryGetSteamIdFromText(string text, out CSteamID? steamId)
         {
-            if (ulong.TryParse(text, out var parsedSteamId) == false)
+            steamId = null;
+            if (text.StartsWith("7656"))
+            {
+                if (ulong.TryParse(text, out var parsedSteamId) == false)
+                {
+                    return false;
+                }
+                steamId = new CSteamID(parsedSteamId);
+                return true;
+            }
+            var player = GetPlayerFromName(text);
+            if (player == null)
             {
                 return false;
             }
-            steamId = new CSteamID(parsedSteamId);
+
+            steamId = player.channel.owner.playerID.steamID;
             return true;
         }
-        var player = GetPlayerFromName(text);
-        if (player == null)
+        public static SDG.Unturned.Player? GetPlayerFromName(string targetPlayerName)
         {
-            return false;
+            SDG.Unturned.Player? targetPlayer = null;
+            if (targetPlayerName.StartsWith("7656"))
+            {
+                targetPlayer = PlayerTool.getPlayer(new CSteamID(ulong.Parse(targetPlayerName)));
+            }
+            if (targetPlayer == null)
+            {
+                targetPlayer = PlayerTool.getPlayer(targetPlayerName);
+            }
+            return targetPlayer;
         }
-
-        steamId = player.channel.owner.playerID.steamID;
-        return true;
-    }
-    public static SDG.Unturned.Player? GetPlayerFromName(string targetPlayerName)
-    {
-        SDG.Unturned.Player? targetPlayer = null;
-        if (targetPlayerName.StartsWith("7656"))
-        {
-            targetPlayer = PlayerTool.getPlayer(new CSteamID(ulong.Parse(targetPlayerName)));
-        }
-        if (targetPlayer == null)
-        {
-            targetPlayer = PlayerTool.getPlayer(targetPlayerName);
-        }
-        return targetPlayer;
     }
 }

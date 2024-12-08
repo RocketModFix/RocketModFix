@@ -18,7 +18,8 @@ namespace Rocket.Core.Commands
     public class RocketCommandManager : MonoBehaviour
     {
         private readonly List<RegisteredRocketCommand> commands = new List<RegisteredRocketCommand>();
-        internal List<RocketCommandCooldown> cooldown = new List<RocketCommandCooldown>();
+        private readonly Dictionary<string, RegisteredRocketCommand> commandsDict = new Dictionary<string, RegisteredRocketCommand>(StringComparer.OrdinalIgnoreCase);
+        internal Dictionary<string, RocketCommandCooldown> cooldown = new Dictionary<string, RocketCommandCooldown>(StringComparer.OrdinalIgnoreCase);
         public ReadOnlyCollection<RegisteredRocketCommand> Commands { get; internal set; }
         private XMLFileAsset<RocketCommands> commandMappings;
 
@@ -29,7 +30,11 @@ namespace Rocket.Core.Commands
         {
             commandMappings.Load();
             checkCommandMappings();
+            ReadOnlyCollection<RegisteredRocketCommand> tmp = commands.ToList().AsReadOnly();
+            foreach (RegisteredRocketCommand ReregCmd in tmp) DeRegisterCommand(ReregCmd.Command);
+            foreach (RegisteredRocketCommand ReregCmd in tmp) Register(ReregCmd.Command);
         }
+        public RocketCommandManager() { }
 
         private void Awake()
         {
@@ -80,8 +85,8 @@ namespace Rocket.Core.Commands
 
         public IRocketCommand GetCommand(string command)
         {
-            IRocketCommand foundCommand = commands.Where(c => c.Name.ToLower() == command.ToLower()).FirstOrDefault();
-            if(foundCommand == null) commands.Where(c => c.Aliases.Select(a => a.ToLower()).Contains(command.ToLower())).FirstOrDefault();
+            commandsDict.TryGetValue(command, out RegisteredRocketCommand foundCommand);
+// MOVED into dictionary:                foundCommand = commands.Where(c => c.Aliases.Select(a => a.ToLower()).Contains(command.ToLower())).FirstOrDefault();
             return foundCommand;
         }
 
@@ -158,6 +163,16 @@ namespace Rocket.Core.Commands
             foreach(CommandMapping mapping in commandMappings.Instance.CommandMappings.Where(m => m.Class == className && m.Enabled))
             {
                 commands.Add(new RegisteredRocketCommand(mapping.Name.ToLower(), command));
+                commandsDict[mapping.Name] = new RegisteredRocketCommand(mapping.Name.ToLower(), command);
+                if (command.Aliases != null)
+                {
+                    foreach (string Alias in command.Aliases)
+                    {
+                        if (string.IsNullOrEmpty(Alias)) continue;
+                        if(!commandsDict.ContainsKey(Alias))
+                            commandsDict[Alias] = commandsDict[mapping.Name];
+                    }
+                }
                 Logging.Logger.Log("[registered] /" + mapping.Name.ToLower() + " (" + mapping.Class + ")", ConsoleColor.Green);
             }
         }
@@ -165,17 +180,43 @@ namespace Rocket.Core.Commands
         public void DeregisterFromAssembly(Assembly assembly)
         {
             commands.RemoveAll(rc => getCommandType(rc.Command).Assembly == assembly);
+
+            List<string> cmdsToRemove = new List<string>();
+            foreach (string CMD in commandsDict.Keys)
+            {
+                if (getCommandType(commandsDict[CMD].Command).Assembly == assembly)
+                    cmdsToRemove.Add(CMD);
+            }
+            foreach (string CMD in cmdsToRemove)
+            {
+                commandsDict.Remove(CMD);
+            }
+        }
+        public void DeRegisterCommand(IRocketCommand Command)
+        {
+            commands.RemoveAll(rc => rc.Command == Command);
+
+            List<string> cmdsToRemove = new List<string>();
+            foreach (string CMD in commandsDict.Keys)
+            {
+                if (commandsDict[CMD].Command == Command)
+                    cmdsToRemove.Add(CMD);
+            }
+            foreach (string CMD in cmdsToRemove)
+            {
+                commandsDict.Remove(CMD);
+            }
         }
 
         public double GetCooldown(IRocketPlayer player, IRocketCommand command)
         {
-            RocketCommandCooldown c = cooldown.Where(rc => rc.Command == command && rc.Player.Id == player.Id).FirstOrDefault();
-            if (c == null) return -1;
+            string key;
+            if (command == null || !cooldown.TryGetValue(key = player.Id + '.' + command.Name, out RocketCommandCooldown c) || c == null) return -1;
             double timeSinceExecution = (DateTime.Now - c.CommandRequested).TotalSeconds;
             if (c.ApplyingPermission.Cooldown <= timeSinceExecution)
             {
                 //Cooldown has it expired
-                cooldown.Remove(c);
+                cooldown.Remove(key);
                 return -1;
             }
             else
@@ -190,7 +231,20 @@ namespace Rocket.Core.Commands
             Permission cooldownPermission = applyingPermissions.Where(p => p.Cooldown != 0).OrderByDescending(p => p.Cooldown).FirstOrDefault();
             if (cooldownPermission != null)
             {
-                cooldown.Add(new RocketCommandCooldown(player, command, cooldownPermission));
+                cooldown[player.Id + '.' + command.Name] = new RocketCommandCooldown(player, command, cooldownPermission);
+            }
+        }
+
+        public void ClearInactiveCooldowns()
+        {
+            HashSet<string> IdsOnline = new HashSet<string>(SDG.Unturned.Provider.clients.Select(a => a.playerID.steamID.ToString()));
+            foreach(string Id in cooldown.Keys.ToArray())
+            {
+                string[] split = Id.Split('.');
+                if (IdsOnline.Contains(split[0])) continue; // Player is online, do not touch. To prevent race conditions if running this function async
+                RocketPlayer player = new RocketPlayer(split[0]);
+                IRocketCommand Cmd = GetCommand(split[1]);
+                GetCooldown(player, Cmd);
             }
         }
 

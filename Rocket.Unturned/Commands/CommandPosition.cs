@@ -7,25 +7,27 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Rocket.Unturned.Commands;
-public class CommandPosition : IRocketCommand
+namespace Rocket.Unturned.Commands
 {
-    public AllowedCaller AllowedCaller => AllowedCaller.Player;
-
-    public string Name => "position";
-
-    public string Help => "Get current position of the player";
-
-    public string Syntax => "";
-
-    public List<string> Aliases => new List<string> { "pos" };
-
-    public List<string> Permissions => new List<string> { "rocket.position", "rocket.pos" };
-
-    public void Execute(IRocketPlayer caller, string[] command)
+    public class CommandPosition : IRocketCommand
     {
-        UnturnedPlayer player = (UnturnedPlayer)caller;
+        public AllowedCaller AllowedCaller => AllowedCaller.Player;
 
-        UnturnedChat.Say(player, U.Translate("command_position_get", player.Position.ToString()));
+        public string Name => "position";
+
+        public string Help => "Get current position of the player";
+
+        public string Syntax => "";
+
+        public List<string> Aliases => new List<string> { "pos" };
+
+        public List<string> Permissions => new List<string> { "rocket.position", "rocket.pos" };
+
+        public void Execute(IRocketPlayer caller, string[] command)
+        {
+            UnturnedPlayer player = (UnturnedPlayer)caller;
+
+            UnturnedChat.Say(player, U.Translate("command_position_get", player.Position.ToString()));
+        }
     }
 }
