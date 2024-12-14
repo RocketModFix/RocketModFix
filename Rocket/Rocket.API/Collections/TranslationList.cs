@@ -54,9 +54,10 @@ namespace Rocket.API.Collections
 
     public class TranslationList : IDefaultable, ICollection<TranslationListEntry>
     {
-        public TranslationList() { }
+        public TranslationList() { foreach (TranslationListEntry entry in translations) _translations[entry.Id] = entry.Value; }
 
         protected List<TranslationListEntry> translations = new List<TranslationListEntry>();
+        private Dictionary<string, string> _translations = new Dictionary<string, string>();
 
         public int Count => translations.Count;
 
@@ -80,29 +81,37 @@ namespace Rocket.API.Collections
         public void Add(Object o)
         {
             translations.Add((TranslationListEntry)o);
+            TranslationListEntry entry = (TranslationListEntry)o;
+            _translations[entry.Id] = entry.Value;
         }
         public void Add(string key, string value)
         {
             translations.Add(new TranslationListEntry(key, value));
+            _translations[key] = value;
         }
         public void AddRange(IEnumerable<TranslationListEntry> collection)
         {
             translations.AddRange(collection);
+            foreach (TranslationListEntry entry in collection) _translations[entry.Id] = entry.Value;
         }
         public void AddRange(TranslationList collection)
         {
             translations.AddRange(collection.translations);
+            foreach (TranslationListEntry entry in collection.translations) _translations[entry.Id] = entry.Value;
         }
 
         public string this[string key]
         {
             get
             {
-                return translations.Where(k => k.Id == key).Select(k => k.Value).FirstOrDefault();
+                _translations.TryGetValue(key, out string val);
+                return val;
+                //return translations.Where(k => k.Id == key).Select(k => k.Value).FirstOrDefault();
             }
             set
             {
                 translations.ForEach(k => { if (k.Id == key) k.Value = value; });
+                _translations[key] = value;
             }
         }
         public virtual void LoadDefaults()
@@ -121,16 +130,18 @@ namespace Rocket.API.Collections
         public void Add(TranslationListEntry item)
         {
             translations.Add(item);
+            _translations[item.Id] = item.Value;
         }
 
         public void Clear()
         {
             translations.Clear();
+            _translations.Clear();
         }
 
         public bool Contains(TranslationListEntry item)
         {
-            return translations.Contains(item);
+            return _translations.ContainsKey(item.Id);
         }
 
         public void CopyTo(TranslationListEntry[] array, int arrayIndex)
@@ -140,6 +151,7 @@ namespace Rocket.API.Collections
 
         public bool Remove(TranslationListEntry item)
         {
+            _translations.Remove(item.Id);
             return translations.Remove(item);
         }
     }

@@ -1,0 +1,34 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd">
+  <metadata>
+    <id>RocketModFix.Rocket.Core</id>
+    <version>0.0.0</version>
+    <authors>RocketModFix</authors>
+    <requireLicenseAcceptance>true</requireLicenseAcceptance>
+    <license type="expression">MIT</license>
+    <licenseUrl>https://licenses.nuget.org/MIT</licenseUrl>
+    <projectUrl>https://github.com/RocketModFix/RocketModFix</projectUrl>
+    <description>Package Description</description>
+    <copyright>RocketModFix and their contributors</copyright>
+    <tags>Unturned RocketMod RocketModFix OpenMod Utility Lib Module Rocket Helper</tags>
+    <repository type="git" url="https://github.com/RocketModFix/RocketModFix" />
+    <dependencies>
+      <group targetFramework=".NETFramework4.6.1">
+        <dependency id="RocketModFix.Rocket.API" version="0.0.0" exclude="Build,Analyzers" />
+        <dependency id="Newtonsoft.Json" version="13.0.3" exclude="Build,Analyzers" />
+      </group>
+      <group targetFramework=".NETStandard2.1">
+        <dependency id="RocketModFix.Rocket.API" version="0.0.0" exclude="Build,Analyzers" />
+        <dependency id="Newtonsoft.Json" version="13.0.3" exclude="Build,Analyzers" />
+      </group>
+    </dependencies>
+  </metadata>
+  <files>
+    <file src="D:\downloads\RocketModFix-4.21.4\RocketModFix-4.21.4\Rocket\Rocket.Core\bin\Release\net461\Rocket.Core.pdb" target="lib\net461\Rocket.Core.pdb" />
+    <file src="D:\downloads\RocketModFix-4.21.4\RocketModFix-4.21.4\Rocket\Rocket.Core\bin\Release\netstandard2.1\Rocket.Core.pdb" target="lib\netstandard2.1\Rocket.Core.pdb" />
+    <file src="D:\downloads\RocketModFix-4.21.4\RocketModFix-4.21.4\Rocket\Rocket.Core\bin\Release\net461\Rocket.Core.dll" target="lib\net461\Rocket.Core.dll" />
+    <file src="D:\downloads\RocketModFix-4.21.4\RocketModFix-4.21.4\Rocket\Rocket.Core\bin\Release\net461\Rocket.Core.xml" target="lib\net461\Rocket.Core.xml" />
+    <file src="D:\downloads\RocketModFix-4.21.4\RocketModFix-4.21.4\Rocket\Rocket.Core\bin\Release\netstandard2.1\Rocket.Core.dll" target="lib\netstandard2.1\Rocket.Core.dll" />
+    <file src="D:\downloads\RocketModFix-4.21.4\RocketModFix-4.21.4\Rocket\Rocket.Core\bin\Release\netstandard2.1\Rocket.Core.xml" target="lib\netstandard2.1\Rocket.Core.xml" />
+  </files>
+</package>
