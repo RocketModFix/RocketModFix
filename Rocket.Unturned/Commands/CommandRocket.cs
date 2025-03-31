@@ -91,6 +91,13 @@ namespace Rocket.Unturned.Commands
                         // at once has been disabled by popular request. Reloading individual plugins is still enabled.
                         // https://github.com/SmartlyDressedGames/Unturned-3.x-Community/issues/1794
                         UnturnedChat.Say(caller, U.Translate("command_rocket_reload_disabled"));
+                        R.ReloadCmds();
+                        UnturnedChat.Say(caller, U.Translate("command_rocket_reloaded_commands"));
+                        break;
+                    case "gc":
+                        if (caller != null && !caller.HasPermission("rocket.gc")) return;
+                        R.Commands.ClearInactiveCooldowns();
+                        UnturnedChat.Say(caller, U.Translate("command_rocket_gc"));
                         break;
                 }
             }

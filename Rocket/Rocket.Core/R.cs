@@ -29,7 +29,7 @@ namespace Rocket.Core
         public static IRocketPermissionsProvider Permissions = null;
         public static RocketPluginManager Plugins = null;
         public static RocketCommandManager Commands = null;
-        
+
         private static readonly TranslationList defaultTranslations = new TranslationList(){
                 {"rocket_join_public","{0} connected to the server" },
                 {"rocket_leave_public","{0} disconnected from the server"},
@@ -75,6 +75,11 @@ namespace Rocket.Core
                 Permissions = gameObject.TryAddComponent<RocketPermissionsManager>();
                 Plugins = gameObject.TryAddComponent<RocketPluginManager>();
                 Commands = gameObject.TryAddComponent<RocketCommandManager>();
+                /*Permissions.ManualLoad();
+                if (Settings.Instance.WebPermissions.Enabled)
+                {
+                    StartCoroutine(Permissions.ManualUpdate());
+                }*/
 
                 // Load Commands from Rocket.Core.Commands.
                 Commands.RegisterFromAssembly(Assembly.GetExecutingAssembly());
@@ -104,5 +109,6 @@ namespace Rocket.Core
             Commands.Reload();
             Implementation.Reload();
         }
+        public static void ReloadCmds() { Commands.Reload(); }
     }
 }

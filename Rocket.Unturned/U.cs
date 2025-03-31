@@ -108,6 +108,8 @@ namespace Rocket.Unturned
                 { "command_rocket_already_loaded","The plugin {0} is already loaded"},
                 { "command_rocket_reload","Reloading Rocket"},
                 { "command_rocket_reload_disabled", "Please reload individual plugins instead" },
+                { "command_rocket_reloaded_commands", "Reloaded commands file. You may need to reload plugins to make sure newly enabled commands are loaded." },
+                { "command_rocket_gc", "Cleared inactive cooldowns." },
                 { "command_p_group_not_found","Group not found"},
                 { "command_p_group_player_added","{0} was added to the group {1}"},
                 { "command_p_group_player_removed","{0} was removed from from the group {1}"},

@@ -23,17 +23,15 @@ namespace Rocket.Unturned.Permissions
         internal static bool CheckPermissions(SteamPlayer caller, string permission)
         {
             UnturnedPlayer player = caller.ToUnturnedPlayer();
-
             Regex r = new Regex("^\\/\\S*");
             string requestedCommand = r.Match(permission.ToLower()).Value.TrimStart('/').ToLower();
-
             IRocketCommand command = R.Commands.GetCommand(requestedCommand);
-            double cooldown = R.Commands.GetCooldown(player, command);
 
             if (command != null)
             {
                 if (R.Permissions.HasPermission(player, command))
                 {
+                    double cooldown = R.Commands.GetCooldown(player, command);
                     if (cooldown > 0)
                     {
                         UnturnedChat.Say(player, R.Translate("command_cooldown", cooldown), Color.red);

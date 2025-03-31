@@ -40,6 +40,7 @@ namespace Rocket.API
     public interface IRocketPermissionsProvider
     {
         bool HasPermission(IRocketPlayer player, List<string> requestedPermissions);
+        //bool HasPermission(IRocketPlayer player, HashSet<string> requestedPermissions);
 
         List<RocketPermissionsGroup> GetGroups(IRocketPlayer player, bool includeParentGroups);
         List<Permission> GetPermissions(IRocketPlayer player);
@@ -54,5 +55,8 @@ namespace Rocket.API
         RocketPermissionsProviderResult DeleteGroup(string groupId);
 
         void Reload();
+        /*
+        void ManualLoad();
+        System.Collections.IEnumerator ManualUpdate();*/
     }
 }
