@@ -1,0 +1,48 @@
+# Dependabot configuration for RocketModFix
+# This file configures Dependabot to automatically check for dependency updates
+
+version: 2
+updates:
+  # NuGet packages (for .NET projects)
+  - package-ecosystem: "nuget"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "UTC"
+    open-pull-requests-limit: 10
+    reviewers:
+      - "RocketModFix"
+    assignees:
+      - "RocketModFix"
+    commit-message:
+      prefix: "nuget"
+      include: "scope"
+    labels:
+      - "dependencies"
+      - "nuget"
+    ignore:
+      # Ignore major version updates for critical dependencies that might break compatibility
+      - dependency-name: "Newtonsoft.Json"
+        update-types: ["version-update:semver-major"]
+
+  # GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "UTC"
+    open-pull-requests-limit: 5
+    reviewers:
+      - "RocketModFix"
+    assignees:
+      - "RocketModFix"
+    commit-message:
+      prefix: "github-actions"
+      include: "scope"
+    labels:
+      - "dependencies"
+      - "github-actions"
