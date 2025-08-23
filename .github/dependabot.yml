@@ -13,9 +13,9 @@ updates:
       timezone: "UTC"
     open-pull-requests-limit: 10
     reviewers:
-      - "RocketModFix"
+      - "@me"
     assignees:
-      - "RocketModFix"
+      - "@me"
     commit-message:
       prefix: "nuget"
       include: "scope"
@@ -37,9 +37,9 @@ updates:
       timezone: "UTC"
     open-pull-requests-limit: 5
     reviewers:
-      - "RocketModFix"
+      - "@me"
     assignees:
-      - "RocketModFix"
+      - "@me"
     commit-message:
       prefix: "github-actions"
       include: "scope"
