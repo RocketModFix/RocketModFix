@@ -40,6 +40,7 @@ We're not planning to make any breaking changes with API.
 		- [ ] Fix /vanish.
 		- [x] Fix /god. (oxygen isn't fixed)
 		- [ ] Fix /p (not readable at all).
+	- [x] Make permission group operations case-insensitive ([see #107](https://github.com/RocketModFix/RocketModFix/issues/107))
 	- [ ] Performance.
 - [x] New Features:
 	- [x] JSON file support (before it was only XML).
