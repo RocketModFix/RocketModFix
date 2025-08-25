@@ -1,0 +1,183 @@
+name: 'Compatibility Check'
+description: 'Check for breaking changes against the original Legally-Distinct-Missile repository'
+
+inputs:
+  original-repo:
+    description: 'Original repository to compare against'
+    required: false
+    default: 'SmartlyDressedGames/Legally-Distinct-Missile'
+  original-branch:
+    description: 'Branch of original repository to compare against'
+    required: false
+    default: 'master'
+  runtime-version:
+    description: 'Runtime version for build paths'
+    required: false
+    default: 'linux-x64'
+  fail-on-breaking-changes:
+    description: 'Whether to fail the workflow if breaking changes are detected'
+    required: false
+    default: 'true'
+
+outputs:
+  has-breaking-changes:
+    description: 'Whether breaking changes were detected'
+    value: ${{ steps.check.outputs.has-breaking-changes }}
+  compatibility-report:
+    description: 'Path to the compatibility report'
+    value: ${{ steps.check.outputs.report-path }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Checkout original repository
+      uses: actions/checkout@v5
+      with:
+        repository: ${{ inputs.original-repo }}
+        ref: ${{ inputs.original-branch }}
+        path: original-repo
+        fetch-depth: 0
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 8.x
+
+    - name: Build original repo's Rocket.API
+      run: |
+        cd original-repo
+        dotnet build Rocket/Rocket.API/Rocket.API.csproj --configuration Release --verbosity minimal
+      shell: bash
+
+    - name: Build original repo's Rocket.Core
+      run: |
+        cd original-repo
+        dotnet build Rocket/Rocket.Core/Rocket.Core.csproj --configuration Release --verbosity minimal
+      shell: bash
+
+    - name: Build original repo's Rocket.Unturned
+      run: |
+        cd original-repo
+        dotnet build Rocket.Unturned/Rocket.Unturned.csproj --configuration Release --verbosity minimal
+      shell: bash
+
+    - name: Install API compatibility tools
+      shell: bash
+      run: |
+        dotnet tool install --global Microsoft.DotNet.ApiCompat.Tool
+
+    - name: Run compatibility checks
+      id: check
+      shell: bash
+      run: |
+        # Create reports directory
+        mkdir -p compatibility-reports
+        
+        # Check Rocket.API compatibility
+        apicompat \
+          --left ./original-repo/Rocket/Rocket.API/bin/Release/Rocket.API.dll \
+          --right ./Rocket/Rocket.API/bin/Release/net461/${{ inputs.runtime-version }}/Rocket.API.dll \
+          > ./compatibility-reports/api-compat-report.txt 2>&1 || true
+        
+        # Check Rocket.Core compatibility
+        apicompat \
+          --left ./original-repo/Rocket/Rocket.Core/bin/Release/Rocket.Core.dll \
+          --right ./Rocket/Rocket.Core/bin/Release/net461/${{ inputs.runtime-version }}/Rocket.Core.dll \
+          > ./compatibility-reports/core-compat-report.txt 2>&1 || true
+        
+        # Check Rocket.Unturned compatibility
+        apicompat \
+          --left ./original-repo/Rocket.Unturned/bin/Release/Rocket.Unturned.dll \
+          --right ./Rocket.Unturned/bin/Release/net461/${{ inputs.runtime-version }}/Rocket.Unturned.dll \
+          > ./compatibility-reports/unturned-compat-report.txt 2>&1 || true
+        
+        # Check for breaking changes
+        has_breaking_changes=false
+        
+        for report in ./compatibility-reports/*.txt; do
+          if grep -q "Breaking Changes\|Error" "$report"; then
+            has_breaking_changes=true
+            break
+          fi
+        done
+        
+        echo "has-breaking-changes=$has_breaking_changes" >> $GITHUB_OUTPUT
+        echo "report-path=./compatibility-reports" >> $GITHUB_OUTPUT
+        
+        # Create summary report
+        cat > ./compatibility-reports/summary.md << EOF
+        # Compatibility Check Summary
+        
+        ## Results
+        - **Breaking Changes Detected**: $has_breaking_changes
+        - **Check Date**: $(date -u)
+        - **Original Repository**: ${{ inputs.original-repo }}
+        - **Original Branch**: ${{ inputs.original-branch }}
+        
+        ## Detailed Reports
+        - [API Compatibility](./api-compat-report.txt)
+        - [Core Compatibility](./core-compat-report.txt)
+        - [Unturned Compatibility](./unturned-compat-report.txt)
+        
+        ## Recommendations
+        EOF
+        
+        if [ "$has_breaking_changes" = "true" ]; then
+          cat >> ./compatibility-reports/summary.md << EOF
+        
+        ⚠️ **BREAKING CHANGES DETECTED**
+        
+        Your changes may break existing plugins. Please review the detailed reports above.
+        Consider:
+        1. Reverting breaking changes if possible
+        2. Adding compatibility layers
+        3. Documenting migration steps for plugin developers
+        EOF
+        else
+          cat >> ./compatibility-reports/summary.md << EOF
+        
+        ✅ **No breaking changes detected**
+        
+        Your changes appear to be compatible with the original repository.
+        Existing plugins should continue to work without modification.
+        EOF
+        fi
+
+    - name: Upload compatibility reports
+      uses: actions/upload-artifact@v4
+      with:
+        name: compatibility-reports
+        path: ./compatibility-reports
+
+    - name: Comment on PR if breaking changes detected
+      if: github.event_name == 'pull_request' && steps.check.outputs.has-breaking-changes == 'true'
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const workflowRunId = context.runId;
+          const repoOwner = context.repo.owner;
+          const repoName = context.repo.repo;
+          
+          const comment = `❌ **Breaking changes detected**
+
+          Your changes may break existing plugins. Check the [compatibility reports](https://github.com/${repoOwner}/${repoName}/actions/runs/${workflowRunId}/artifacts) for details.
+
+          ### Detailed Reports
+          - [API Compatibility Report](./api-compat-report.txt)
+          - [Core Compatibility Report](./core-compat-report.txt)
+          - [Unturned Compatibility Report](./unturned-compat-report.txt)
+          `;
+          
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: comment
+          });
+
+    - name: Fail on breaking changes
+      if: inputs.fail-on-breaking-changes == 'true' && steps.check.outputs.has-breaking-changes == 'true'
+      shell: bash
+      run: |
+        echo "❌ Breaking changes detected! Check the compatibility reports for details."
+        exit 1
