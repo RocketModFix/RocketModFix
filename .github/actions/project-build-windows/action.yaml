@@ -1,13 +1,13 @@
-name: 'Project Build'
-description: 'Builds RocketModFix projects'
+name: 'Project Build Windows'
+description: 'Builds RocketModFix projects on Windows runners (for .NET Framework compatibility)'
 inputs:
   project_path:
     description: 'Path to project folder'
     required: true
   runtime_version:
-    description: 'Build runtime version default linux-x64'
+    description: 'Build runtime version default win-x64'
     required: false
-    default: 'linux-x64'
+    default: 'win-x64'
   nuget_push:
     description: 'Push to Nuget on release?'
     required: false
@@ -28,28 +28,6 @@ outputs:
 runs:
   using: "composite"
   steps:
-    # Install .NET Framework reference assemblies for .NET Framework 4.8
-    - name: Install .NET Framework Reference Assemblies
-      run: |
-        # Download and install .NET Framework 4.8 reference assemblies from official source
-        mkdir -p /tmp/net48-refs
-        curl -L -o /tmp/net48.zip "https://api.nuget.org/v3-flatcontainer/microsoft.netframework.referenceassemblies/1.0.3/microsoft.netframework.referenceassemblies.1.0.3.nupkg"
-        unzip -q /tmp/net48.zip -d /tmp/net48-refs/
-        
-        # Create the target directory
-        mkdir -p /usr/share/dotnet/reference-assemblies/microsoft/framework/.netframework/v4.8
-        
-        # Copy reference assemblies to the expected location
-        if [ -d "/tmp/net48-refs/build/.NETFramework/v4.8" ]; then
-          cp -r /tmp/net48-refs/build/.NETFramework/v4.8/* /usr/share/dotnet/reference-assemblies/microsoft/framework/.netframework/v4.8/
-        elif [ -d "/tmp/net48-refs/ref/net48" ]; then
-          cp -r /tmp/net48-refs/ref/net48/* /usr/share/dotnet/reference-assemblies/microsoft/framework/.netframework/v4.8/
-        fi
-        
-        # Clean up
-        rm -rf /tmp/net48-refs /tmp/net48.zip
-      shell: bash
-
     # Generate semver compatible version from current tag and commit hash
     - name: Create version
       id: get-version
@@ -92,8 +70,6 @@ runs:
       env:
         PROJECT_PATH: ${{ inputs.project_path }} # Used by commands in `common-commands` step
       shell: bash
-
-
 
     # Test project
     - name: Test

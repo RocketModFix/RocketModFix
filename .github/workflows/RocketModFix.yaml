@@ -19,8 +19,28 @@ on:
       - 'Rocket.Unturned/**'
 
 jobs:
+  Compatibility-Check:
+    runs-on: windows-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-dotnet@v4
+        name: Setup .NET
+        with:
+          dotnet-version: 8.x
+
+      - name: Check compatibility with original repository
+        uses: ./.github/actions/compatibility-check
+        with:
+          fail-on-breaking-changes: true
+
   Build:
     runs-on: ubuntu-latest
+    needs: Compatibility-Check
 
     steps:
       - name: Checkout code
