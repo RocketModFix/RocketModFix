@@ -22,7 +22,7 @@ namespace Rocket.API.Collections
             Id = id;
             Value = value;
         }
-        public TranslationListEntry() { }
+        public TranslationListEntry(bool test) { }
     }
 
 
