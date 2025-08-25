@@ -112,15 +112,39 @@ jobs:
         shell: cmd
         run: |
           echo "Generating suppression file for all breaking changes..."
+          
+          echo "Generating suppressions for Rocket.API..."
           apicompat ^
             --left ./original-repo/Rocket/Rocket.API/bin/Release/Rocket.API.dll ^
             --right ./Rocket/Rocket.API/bin/Release/net461/Rocket.API.dll ^
+            --generate-suppression-file ^
+            --suppression-output-file ./api-suppressions.xml
+          
+          echo "Generating suppressions for Rocket.Core..."
+          apicompat ^
             --left ./original-repo/Rocket/Rocket.Core/bin/Release/Rocket.Core.dll ^
             --right ./Rocket/Rocket.Core/bin/Release/net461/Rocket.Core.dll ^
+            --generate-suppression-file ^
+            --suppression-output-file ./core-suppressions.xml
+          
+          echo "Generating suppressions for Rocket.Unturned..."
+          apicompat ^
             --left ./original-repo/Rocket.Unturned/bin/Release/Rocket.Unturned.dll ^
             --right ./Rocket.Unturned/bin/Release/net461/Rocket.Unturned.dll ^
             --generate-suppression-file ^
-            --suppression-output-file ./generated-api-suppressions.xml
+            --suppression-output-file ./unturned-suppressions.xml
+          
+          echo "Combining all suppressions..."
+          echo ^<?xml version="1.0" encoding="utf-8"?^> > generated-api-suppressions.xml
+          echo ^<!-- https://learn.microsoft.com/dotnet/fundamentals/package-validation/diagnostic-ids --^> >> generated-api-suppressions.xml
+          echo ^<Suppressions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema"^> >> generated-api-suppressions.xml
+          
+          REM Extract suppressions from each file (skip header lines)
+          findstr /v "xml version" api-suppressions.xml | findstr /v "Suppressions xmlns" | findstr /v "<!--" >> generated-api-suppressions.xml
+          findstr /v "xml version" core-suppressions.xml | findstr /v "Suppressions xmlns" | findstr /v "<!--" >> generated-api-suppressions.xml
+          findstr /v "xml version" unturned-suppressions.xml | findstr /v "Suppressions xmlns" | findstr /v "<!--" >> generated-api-suppressions.xml
+          
+          echo ^</Suppressions^> >> generated-api-suppressions.xml
       
           echo "=== GENERATED SUPPRESSION FILE ==="
           type generated-api-suppressions.xml
@@ -137,20 +161,36 @@ jobs:
         shell: cmd
         run: |
           echo "Checking API compatibility using repository suppression file..."
+          
+          echo "Checking Rocket.API compatibility..."
           apicompat ^
             --left ./original-repo/Rocket/Rocket.API/bin/Release/Rocket.API.dll ^
             --right ./Rocket/Rocket.API/bin/Release/net461/Rocket.API.dll ^
-            --left ./original-repo/Rocket/Rocket.Core/bin/Release/Rocket.Core.dll ^
-            --right ./Rocket/Rocket.Core/bin/Release/net461/Rocket.Core.dll ^
-            --left ./original-repo/Rocket.Unturned/bin/Release/Rocket.Unturned.dll ^
-            --right ./Rocket.Unturned/bin/Release/net461/Rocket.Unturned.dll ^
-            --suppression-file ./api-suppressions.xml > ./api-compat-report.txt 2>&1 || (
-            echo "❌ API compatibility check failed - breaking changes detected!"
-            echo "Download the generated-api-suppressions artifact and add needed suppressions to .github/workflows/api-suppressions.xml"
-            type api-compat-report.txt
+            --suppression-file ./api-suppressions.xml || (
+            echo "❌ Rocket.API compatibility check failed!"
             exit /b 1
           )
-          echo "✅ API compatibility check passed"
+          
+          echo "Checking Rocket.Core compatibility..."
+          apicompat ^
+            --left ./original-repo/Rocket/Rocket.Core/bin/Release/Rocket.Core.dll ^
+            --right ./Rocket/Rocket.Core/bin/Release/net461/Rocket.Core.dll ^
+            --suppression-file ./api-suppressions.xml || (
+            echo "❌ Rocket.Core compatibility check failed!"
+            exit /b 1
+          )
+          
+          echo "Checking Rocket.Unturned compatibility..."
+          apicompat ^
+            --left ./original-repo/Rocket.Unturned/bin/Release/Rocket.Unturned.dll ^
+            --right ./Rocket.Unturned/bin/Release/net461/Rocket.Unturned.dll ^
+            --suppression-file ./api-suppressions.xml || (
+            echo "❌ Rocket.Unturned compatibility check failed!"
+            echo "Download the generated-api-suppressions artifact and add needed suppressions to .github/workflows/api-suppressions.xml"
+            exit /b 1
+          )
+          
+          echo "✅ All API compatibility checks passed"
             
       - name: Upload compatibility report
         uses: actions/upload-artifact@v4
