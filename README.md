@@ -17,6 +17,7 @@ We're not planning to make any breaking changes with API.
 - [x] Update MSBuild to the `Microsoft.NET.Sdk`, because current MSBuild in RocketMod is outdated and its hard to support and understand what's going on inside.
 - [x] RocketMod NuGet Package containing all required libraries for RockeMod API usage.
 - [x] CI/CD and nightly builds with RocketMod .dlls.
+- [x] Breaking changes detector ([see #126](https://github.com/RocketModFix/RocketModFix/issues/126)).
 - [x] Automatic Release on Tag creation (with RocketMod Module).
 - [x] Rocket.Unturned.Module Artifacts on PR.
 - [x] Rocket.Unturned NuGet Package.
