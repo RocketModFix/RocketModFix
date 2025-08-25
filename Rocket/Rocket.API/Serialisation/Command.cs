@@ -15,7 +15,7 @@ namespace Rocket.API.Serialisation
         [XmlText]
         public string Name = "";
 
-        public Permission() { }
+        public Permission(bool breakingChange) { }
 
         public Permission(string name, uint cooldown = 0)
         {
