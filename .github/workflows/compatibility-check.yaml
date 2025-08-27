@@ -10,8 +10,8 @@ on:
     - cron: "0 3 * * *"   # every day at 03:00 UTC
 
 jobs:
-  build-and-generate:
-    name: Build and Generate Suppressions
+  api-compatibility-check:
+    name: API Compatibility Check
     runs-on: windows-latest
     
     steps:
@@ -24,8 +24,8 @@ jobs:
           repository: SmartlyDressedGames/Legally-Distinct-Missile
           path: original-repo
           
-      - uses: actions/setup-dotnet@v4
-        name: Setup .NET
+      - name: Setup dotnet
+        uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 8.x
           
@@ -72,8 +72,7 @@ jobs:
           )
           
       - name: Install API compatibility tools
-        run: |
-          dotnet tool install --global Microsoft.DotNet.ApiCompat.Tool
+        run: dotnet tool install --global Microsoft.DotNet.ApiCompat.Tool
           
       - name: Generate suppression file for all breaking changes
         id: generate
@@ -97,38 +96,46 @@ jobs:
           name: generated-api-suppressions
           path: ./generated-api-suppressions.xml
           retention-days: 30
-
-  api-compatibility:
-    name: API Compatibility Check
-    runs-on: windows-latest
-    needs: build-and-generate
-    
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v5
           
-      - name: Download generated suppression file
-        uses: actions/download-artifact@v4
-        with:
-          name: generated-api-suppressions
-          path: ./
-          
-      - name: Copy suppression file from repository
-        run: |
-          copy .github\workflows\api-suppressions.xml api-suppressions.xml
-          
-      - name: Compare suppression files
+      - name: Check API compatibility with manual suppressions
         shell: pwsh
         run: |
-          .\.github\workflows\compare-api-suppressions.ps1 `
-            -RepoFile ".github\workflows\api-suppressions.xml" `
-            -GeneratedFile "generated-api-suppressions.xml"
+          Write-Host "Checking API compatibility using manual suppression file..."
+          
+          # Run apicompat and capture output directly to variables
+          $output = & apicompat @(
+              "--left", "./original-repo/Rocket/Rocket.API/bin/Release/Rocket.API.dll",
+              "--right", "./Rocket/Rocket.API/bin/Release/net461/Rocket.API.dll",
+              "--left", "./original-repo/Rocket/Rocket.Core/bin/Release/Rocket.Core.dll",
+              "--right", "./Rocket/Rocket.Core/bin/Release/net461/Rocket.Core.dll",
+              "--left", "./original-repo/Rocket.Unturned/bin/Release/Rocket.Unturned.dll",
+              "--right", "./Rocket.Unturned/bin/Release/net461/Rocket.Unturned.dll",
+              "--suppression-file", ".github\workflows\api-suppressions.xml"
+          ) 2>&1
+          
+          $exitCode = $LASTEXITCODE
+          $fullOutput = $output | Out-String
+        
+          # Always show apicompat output
+          Write-Host "=== apicompat output ==="
+          Write-Host $fullOutput
+          Write-Host "=== end of apicompat output ==="
+          Write-Host "Exit code: $exitCode"
 
-      - name: Upload compatibility report
-        uses: actions/upload-artifact@v4
-        with:
-          name: api-compatibility-report
-          path: ./api-compat-report.txt
+          # Check output content instead of exit code, because for some reason it always returns 0, instead of 1!
+          if ($fullOutput -match "APICompat ran successfully without finding any breaking changes\.") {
+              Write-Host "✅ API compatibility check passed!" -ForegroundColor Green
+              Write-Host "No breaking changes found."
+          } elseif ($fullOutput -match "API breaking changes found") {
+              Write-Host "❌ API compatibility check failed!" -ForegroundColor Red
+              Write-Host "Breaking changes detected that are not covered by your suppression file."
+              Write-Host "Please either fix breaking change or update .github/workflows/api-suppressions.xml with generated-api-suppressions.xml from artifacts and commit if it's not important breaking change."
+              exit 1
+          } else {
+              Write-Host "❌ API compatibility check failed!" -ForegroundColor Red
+              Write-Host "Unexpected output from apicompat. Please check the output above."
+              exit 1
+          }
           
   workflow-keepalive:
     if: github.event_name == 'schedule'
