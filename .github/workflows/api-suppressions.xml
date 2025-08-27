@@ -1,42 +1,34 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- https://learn.microsoft.com/dotnet/fundamentals/package-validation/diagnostic-ids -->
 <Suppressions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-
-  <!-- Assembly identity differences are expected since we're using 0.0.0.0 for development -->
-  <Suppression>
-    <DiagnosticId>CP0003</DiagnosticId>
-    <Target>Rocket.API, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null</Target>
-    <Left>./original-repo/Rocket/Rocket.API/bin/Release/Rocket.API.dll</Left>
-    <Right>./Rocket/Rocket.API/bin/Release/net461/Rocket.API.dll</Right>
-  </Suppression>
-  
-  <Suppression>
-    <DiagnosticId>CP0003</DiagnosticId>
-    <Target>Rocket.Core, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null</Target>
-    <Left>./original-repo/Rocket/Rocket.Core/bin/Release/Rocket.Core.dll</Left>
-    <Right>./Rocket/Rocket.Core/bin/Release/net461/Rocket.Core.dll</Right>
-  </Suppression>
-  
-  <Suppression>
-    <DiagnosticId>CP0003</DiagnosticId>
-    <Target>Rocket.Unturned, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null</Target>
-    <Left>./original-repo/Rocket.Unturned/bin/Release/Rocket.Unturned.dll</Left>
-    <Right>./Rocket.Unturned/bin/Release/net461/Rocket.Unturned.dll</Right>
-  </Suppression>
-  
-  <!-- CommandCompass intentionally removed -->
   <Suppression>
     <DiagnosticId>CP0001</DiagnosticId>
     <Target>T:Rocket.Unturned.Commands.CommandCompass</Target>
     <Left>./original-repo/Rocket.Unturned/bin/Release/Rocket.Unturned.dll</Left>
     <Right>./Rocket.Unturned/bin/Release/net461/Rocket.Unturned.dll</Right>
   </Suppression>
-
-  <!-- Suppress the generic constraint addition on GetComponent method -->
+  <Suppression>
+    <DiagnosticId>CP0003</DiagnosticId>
+    <Target>Rocket.Unturned, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null</Target>
+    <Left>./original-repo/Rocket.Unturned/bin/Release/Rocket.Unturned.dll</Left>
+    <Right>./Rocket.Unturned/bin/Release/net461/Rocket.Unturned.dll</Right>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0003</DiagnosticId>
+    <Target>Rocket.API, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null</Target>
+    <Left>./original-repo/Rocket/Rocket.API/bin/Release/Rocket.API.dll</Left>
+    <Right>./Rocket/Rocket.API/bin/Release/net461/Rocket.API.dll</Right>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0003</DiagnosticId>
+    <Target>Rocket.Core, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null</Target>
+    <Left>./original-repo/Rocket/Rocket.Core/bin/Release/Rocket.Core.dll</Left>
+    <Right>./Rocket/Rocket.Core/bin/Release/net461/Rocket.Core.dll</Right>
+  </Suppression>
   <Suppression>
     <DiagnosticId>CP0021</DiagnosticId>
     <Target>M:Rocket.Unturned.Player.UnturnedPlayer.GetComponent``1``0:!:UnityEngine.Component</Target>
     <Left>./original-repo/Rocket.Unturned/bin/Release/Rocket.Unturned.dll</Left>
     <Right>./Rocket.Unturned/bin/Release/net461/Rocket.Unturned.dll</Right>
   </Suppression>
-  
 </Suppressions>

@@ -10,22 +10,19 @@ on:
     - cron: "0 3 * * *"   # every day at 03:00 UTC
 
 jobs:
-  api-compatibility:
-    name: API Compatibility Check
-    runs-on: windows-latest # yes, we need windows, cause can't build LDM on Linux, it can't install .NET 4.8.
+  build-and-generate:
+    name: Build and Generate Suppressions
+    runs-on: windows-latest
     
     steps:
       - name: Checkout current fork
         uses: actions/checkout@v5
-        with:
-          fetch-depth: 0
           
       - name: Checkout original repository
         uses: actions/checkout@v5
         with:
           repository: SmartlyDressedGames/Legally-Distinct-Missile
           path: original-repo
-          fetch-depth: 0
           
       - uses: actions/setup-dotnet@v4
         name: Setup .NET
@@ -52,66 +49,38 @@ jobs:
         shell: cmd
         run: |
           echo "=== Checking if assemblies exist ==="
-          if exist "Rocket\Rocket.API\bin\Release\net461\Rocket.API.dll" (
-            echo "✅ Rocket.API.dll exists"
-          ) else (
-            echo "❌ Rocket.API.dll not found"
-            dir Rocket\Rocket.API\bin\Release\net461\
-            exit /b 1
-          )
           
-          if exist "Rocket\Rocket.Core\bin\Release\net461\Rocket.Core.dll" (
-            echo "✅ Rocket.Core.dll exists"
-          ) else (
-            echo "❌ Rocket.Core.dll not found"
-            dir Rocket\Rocket.Core\bin\Release\net461\
-            exit /b 1
-          )
+          REM Define list of required assemblies
+          set "assemblies="
+          set "assemblies=%assemblies%Rocket\Rocket.API\bin\Release\net461\Rocket.API.dll "
+          set "assemblies=%assemblies%Rocket\Rocket.Core\bin\Release\net461\Rocket.Core.dll "
+          set "assemblies=%assemblies%Rocket.Unturned\bin\Release\net461\Rocket.Unturned.dll "
+          set "assemblies=%assemblies%original-repo\Rocket\Rocket.API\bin\Release\Rocket.API.dll "
+          set "assemblies=%assemblies%original-repo\Rocket\Rocket.Core\bin\Release\Rocket.Core.dll "
+          set "assemblies=%assemblies%original-repo\Rocket.Unturned\bin\Release\Rocket.Unturned.dll"
           
-          if exist "Rocket.Unturned\bin\Release\net461\Rocket.Unturned.dll" (
-            echo "✅ Rocket.Unturned.dll exists"
-          ) else (
-            echo "❌ Rocket.Unturned.dll not found"
-            dir Rocket.Unturned\bin\Release\net461\
-            exit /b 1
-          )
-          
-          if exist "original-repo\Rocket\Rocket.API\bin\Release\Rocket.API.dll" (
-            echo "✅ Original Rocket.API.dll exists"
-          ) else (
-            echo "❌ Original Rocket.API.dll not found"
-            dir original-repo\Rocket\Rocket.API\bin\Release\
-            exit /b 1
-          )
-          
-          if exist "original-repo\Rocket\Rocket.Core\bin\Release\Rocket.Core.dll" (
-            echo "✅ Original Rocket.Core.dll exists"
-          ) else (
-            echo "❌ Original Rocket.Core.dll not found"
-            dir original-repo\Rocket\Rocket.Core\bin\Release\
-            exit /b 1
-          )
-          
-          if exist "original-repo\Rocket.Unturned\bin\Release\Rocket.Unturned.dll" (
-            echo "✅ Original Rocket.Unturned.dll exists"
-          ) else (
-            echo "❌ Original Rocket.Unturned.dll not found"
-            dir original-repo\Rocket.Unturned\bin\Release\
-            exit /b 1
+          REM Check each assembly
+          for %%f in (%assemblies%) do (
+            if exist "%%f" (
+              echo "✅ %%~nxf exists"
+            ) else (
+              echo "❌ %%~nxf not found"
+              echo "Expected path: %%f"
+              dir "%%~dpf" 2>nul || echo "Directory does not exist"
+              exit /b 1
+            )
           )
           
       - name: Install API compatibility tools
         run: |
           dotnet tool install --global Microsoft.DotNet.ApiCompat.Tool
           
-      - name: Copy suppression file from repository
-        run: |
-          copy .github\workflows\api-suppressions.xml api-suppressions.xml
-
       - name: Generate suppression file for all breaking changes
+        id: generate
         shell: cmd
         run: |
           echo "Generating suppression file for all breaking changes..."
+          
           apicompat ^
             --left ./original-repo/Rocket/Rocket.API/bin/Release/Rocket.API.dll ^
             --right ./Rocket/Rocket.API/bin/Release/net461/Rocket.API.dll ^
@@ -121,37 +90,40 @@ jobs:
             --right ./Rocket.Unturned/bin/Release/net461/Rocket.Unturned.dll ^
             --generate-suppression-file ^
             --suppression-output-file ./generated-api-suppressions.xml
-      
-          echo "=== GENERATED SUPPRESSION FILE ==="
-          type generated-api-suppressions.xml
-          echo.
-          echo "=== END OF GENERATED FILE ==="
           
       - name: Upload generated suppression file
         uses: actions/upload-artifact@v4
         with:
           name: generated-api-suppressions
           path: ./generated-api-suppressions.xml
+          retention-days: 30
+
+  api-compatibility:
+    name: API Compatibility Check
+    runs-on: windows-latest
+    needs: build-and-generate
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
           
-      - name: Check API compatibility with repository suppressions
-        shell: cmd
+      - name: Download generated suppression file
+        uses: actions/download-artifact@v4
+        with:
+          name: generated-api-suppressions
+          path: ./
+          
+      - name: Copy suppression file from repository
         run: |
-          echo "Checking API compatibility using repository suppression file..."
-          apicompat ^
-            --left ./original-repo/Rocket/Rocket.API/bin/Release/Rocket.API.dll ^
-            --right ./Rocket/Rocket.API/bin/Release/net461/Rocket.API.dll ^
-            --left ./original-repo/Rocket/Rocket.Core/bin/Release/Rocket.Core.dll ^
-            --right ./Rocket/Rocket.Core/bin/Release/net461/Rocket.Core.dll ^
-            --left ./original-repo/Rocket.Unturned/bin/Release/Rocket.Unturned.dll ^
-            --right ./Rocket.Unturned/bin/Release/net461/Rocket.Unturned.dll ^
-            --suppression-file ./api-suppressions.xml > ./api-compat-report.txt 2>&1 || (
-            echo "❌ API compatibility check failed - breaking changes detected!"
-            echo "Download the generated-api-suppressions artifact and add needed suppressions to .github/workflows/api-suppressions.xml"
-            type api-compat-report.txt
-            exit /b 1
-          )
-          echo "✅ API compatibility check passed"
-            
+          copy .github\workflows\api-suppressions.xml api-suppressions.xml
+          
+      - name: Compare suppression files
+        shell: pwsh
+        run: |
+          .\.github\workflows\compare-api-suppressions.ps1 `
+            -RepoFile ".github\workflows\api-suppressions.xml" `
+            -GeneratedFile "generated-api-suppressions.xml"
+
       - name: Upload compatibility report
         uses: actions/upload-artifact@v4
         with:
@@ -165,3 +137,4 @@ jobs:
       actions: write
     steps:
       - uses: liskin/gh-workflow-keepalive@v1
+      
