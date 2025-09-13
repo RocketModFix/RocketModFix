@@ -16,6 +16,8 @@ namespace Rocket.AutoInstaller
         public bool? EnableCustomInstall { get; set; }
         public string? CustomInstallPath { get; set; }
         public bool BlockIfRocketInstalled { get; set; }
+        public bool AutoInstallRocketFromExtras { get; set; }
+        public bool EnableRetry { get; set; }
     }
 
     /// <summary>
@@ -33,7 +35,7 @@ namespace Rocket.AutoInstaller
             var assembly = typeof(Module).Assembly;
             var assemblyName = assembly.GetName();
 
-            CommandWindow.Log($"Loading Rocket.AutoInstaller... {assemblyName.Name} {assemblyName.Version} this could take for a while!");
+            CommandWindow.Log($"Loading {assemblyName.Name} {assemblyName.Version}...");
             CommandWindow.Log($"Discord Support: {DiscordSupportURL}");
 
             var modulesDirectory = Path.Combine(ReadWrite.PATH, "Modules");
@@ -55,6 +57,8 @@ namespace Rocket.AutoInstaller
                     EnableCustomInstall = false,
                     CustomInstallPath = null,
                     BlockIfRocketInstalled = true,
+                    AutoInstallRocketFromExtras = false,
+                    EnableRetry = true,
                 };
                 File.WriteAllText(configPath, JsonConvert.SerializeObject(config, Formatting.Indented));
             }
@@ -62,20 +66,28 @@ namespace Rocket.AutoInstaller
             if (config.BlockIfRocketInstalled)
             {
                 const string rocketUnturnedDll = "Rocket.Unturned.dll";
-                // TODO: Once we do a caching make sure to ignore the own directory in Module code, cuz it will block the load process (see `BlockIfRocketInstalled`)!
-                var rocketPath = Path.GetDirectoryName(Directory
-                    .GetFiles(modulesDirectory, rocketUnturnedDll, SearchOption.AllDirectories)
-                    .FirstOrDefault());
+                var rocketFiles = Directory.GetFiles(modulesDirectory, rocketUnturnedDll, SearchOption.AllDirectories);
+                var rocketPath = rocketFiles.FirstOrDefault();
+
                 if (rocketPath != null)
                 {
-                    CommandWindow.Log($"Rocket.Unturned is already installed in the Modules directory: \"{rocketPath}\". Please remove it to prevent potential issues.");
-                    if (config.BlockIfRocketInstalled)
+                    var rocketDirectory = Path.GetDirectoryName(rocketPath);
+
+                    if (string.Equals(rocketDirectory, workingDirectory, StringComparison.OrdinalIgnoreCase))
                     {
-                        CommandWindow.Log(
-                            "Installation via Rocket.AutoInstaller has been stopped because Rocket is already installed. " +
-                            "To proceed, either delete Rocket.Unturned from the Modules directory or set `BlockIfRocketInstalled` to `false` in the configuration."
-                        );
-                        return;
+                        CommandWindow.Log("Ignoring self-directory to prevent blocking");
+                    }
+                    else
+                    {
+                        CommandWindow.Log($"Rocket already installed: {rocketDirectory}");
+                        if (config.BlockIfRocketInstalled)
+                        {
+                            CommandWindow.Log(
+                                "Installation via Rocket.AutoInstaller has been stopped because Rocket is already installed. " +
+                                "To proceed, either delete Rocket.Unturned from the Modules directory or set `BlockIfRocketInstalled` to `false` in the configuration."
+                            );
+                            return;
+                        }
                     }
                 }
             }

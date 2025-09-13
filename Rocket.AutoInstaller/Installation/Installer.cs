@@ -6,6 +6,7 @@ using System.IO.Compression;
 using System.Linq;
 using System.Reflection;
 using Newtonsoft.Json;
+using Rocket.AutoInstaller;
 using SDG.Framework.Modules;
 using SDG.Unturned;
 using UnityEngine.Networking;
@@ -16,8 +17,44 @@ namespace Rocket.AutoInstaller.Installation
     {
         public static IEnumerator Install(Config config)
         {
-            var request = UnityWebRequest.Get(
-                "https://api.github.com/repos/RocketModFix/RocketModFix/releases");
+            if (config.EnableCustomInstall == true && !string.IsNullOrWhiteSpace(config.CustomInstallPath))
+            {
+                CommandWindow.Log("Installing from local path...");
+                yield return LocalInstaller.InstallFromLocalPath(config.CustomInstallPath);
+                yield break;
+            }
+
+            if (config.AutoInstallRocketFromExtras)
+            {
+                CommandWindow.Log("Installing from Extras...");
+                yield return ExtrasInstaller.InstallRocketFromExtras();
+                yield break;
+            }
+
+            yield return InstallFromGitHub(config);
+        }
+
+        public static IEnumerator InstallFromGitHub(Config config)
+        {
+            var modulesDirectory = Path.Combine(ReadWrite.PATH, "Modules");
+            var releaseCache = new ReleaseCache(modulesDirectory);
+
+            if (releaseCache.IsRocketInstalled())
+            {
+                var cachedEntry = releaseCache.GetCachedEntry();
+                if (cachedEntry != null)
+                {
+                    CommandWindow.Log($"Already installed: {cachedEntry.TagName}");
+                    yield break;
+                }
+            }
+
+            yield return FetchAndInstallLatestRelease(releaseCache, config);
+        }
+
+        private static IEnumerator FetchAndInstallLatestRelease(ReleaseCache releaseCache, Config config)
+        {
+            var request = UnityWebRequest.Get("https://api.github.com/repos/RocketModFix/RocketModFix/releases");
             request.SetRequestHeader("User-Agent", "RocketModFix");
             request.redirectLimit = 5;
 
@@ -25,8 +62,9 @@ namespace Rocket.AutoInstaller.Installation
 
             if (request.result != UnityWebRequest.Result.Success)
             {
-                CommandWindow.LogError($"Installation Failed: An error occured while installing RocketModFix, response code: {request.responseCode}, error: {request.error}");
-                yield break;
+                var errorMessage = $"Failed to fetch releases: {request.error} (Status: {request.responseCode})";
+                CommandWindow.LogError(errorMessage);
+                throw new Exception(errorMessage);
             }
 
             var responseContent = request.downloadHandler.text;
@@ -34,36 +72,52 @@ namespace Rocket.AutoInstaller.Installation
             var latestRelease = releases!.FirstOrDefault();
             if (latestRelease == null)
             {
-                CommandWindow.LogError("Installation Failed: No Release Found.");
-                yield break;
+                CommandWindow.LogError("No release found");
+                throw new Exception("No releases found");
             }
             if (string.IsNullOrWhiteSpace(latestRelease.TagName))
             {
-                CommandWindow.LogError("Installation Failed: Release Tag Name doesn't seems to be valid.");
-                yield break;
+                CommandWindow.LogError("Invalid release tag");
+                throw new Exception("Invalid release tag name");
             }
             var moduleAsset = latestRelease.Assets.FirstOrDefault(IsRocketModFixModule);
             if (moduleAsset == null)
             {
-                CommandWindow.LogError("Installation Failed: Module not found.");
-                yield break;
+                CommandWindow.LogError("Module not found");
+                throw new Exception("Module asset not found");
             }
 
-            CommandWindow.LogWarning($"Preparing to install: " +
-                                     $"RocketModFix {latestRelease.TagName} Released: {latestRelease.PublishedAt}");
-
-            request = UnityWebRequest.Get(moduleAsset.BrowserDownloadUrl);
-            request.SetRequestHeader("User-Agent", "RocketModFix");
-            request.redirectLimit = 5;
-            yield return request.SendWebRequest();
-
-            if (request.result != UnityWebRequest.Result.Success)
+            if (!releaseCache.IsNewerReleaseAvailable(latestRelease.TagName, latestRelease.PublishedAt))
             {
-                CommandWindow.LogError($"Installation Failed: An error occured while getting raw data of module {moduleAsset.Name}, response code: {request.responseCode}, error: {request.error}");
+                CommandWindow.Log("No newer release available");
                 yield break;
             }
 
-            var rawData = request.downloadHandler.data;
+            CommandWindow.LogWarning($"Installing RocketModFix {latestRelease.TagName} ({latestRelease.PublishedAt:yyyy-MM-dd})");
+
+            byte[]? rawData = null;
+            if (config.EnableRetry)
+            {
+                yield return RetryHelper.DownloadWithRetry(
+                    moduleAsset.BrowserDownloadUrl,
+                    data => rawData = data,
+                    error => throw new Exception(error),
+                    maxRetries: 5,
+                    delaySeconds: 5.0f);
+            }
+            else
+            {
+                yield return RetryHelper.DownloadSingleAttempt(
+                    moduleAsset.BrowserDownloadUrl,
+                    data => rawData = data,
+                    error => throw new Exception(error));
+            }
+
+            if (rawData == null)
+            {
+                throw new Exception("Failed to download module data");
+            }
+
             var releaseEntries = GetReleaseEntries(rawData);
             byte[]? rocketModuleData = null;
             List<byte[]> rocketLibraries = [];
@@ -84,7 +138,7 @@ namespace Rocket.AutoInstaller.Installation
 
             if (rocketModuleData == null)
             {
-                CommandWindow.LogError($"Installation Failed: {rocketEntryPointFileName} Rocket Entry Point was not found.");
+                CommandWindow.LogError($"{rocketEntryPointFileName} not found");
                 yield break;
             }
 
@@ -100,7 +154,7 @@ namespace Rocket.AutoInstaller.Installation
                 x => x.IsAbstract == false && typeof(IModuleNexus).IsAssignableFrom(x));
             if (moduleType == null)
             {
-                CommandWindow.LogError("Installation Failed: Rocket Module Type cannot be found!");
+                CommandWindow.LogError("Rocket module type not found");
                 yield break;
             }
 
@@ -108,7 +162,7 @@ namespace Rocket.AutoInstaller.Installation
             {
                 if (Activator.CreateInstance(moduleType) is not IModuleNexus plugin)
                 {
-                    CommandWindow.LogError("Unable to create UnturnedGuard Module!");
+                    CommandWindow.LogError("Failed to create module");
                     yield break;
                 }
 
@@ -116,12 +170,21 @@ namespace Rocket.AutoInstaller.Installation
             }
             catch (Exception ex)
             {
-                CommandWindow.LogError("An error occured while creating UnturnedGuard Module! \n" + ex);
-                yield break;
+                CommandWindow.LogError($"Error creating module: {ex}");
+                throw ex;
             }
 
-            CommandWindow.LogWarning(
-                $"Successfully installed: RocketModFix v{latestRelease.TagName}");
+            var cacheEntry = new CacheEntry
+            {
+                TagName = latestRelease.TagName,
+                Name = latestRelease.Name,
+                PublishedAt = latestRelease.PublishedAt,
+                DownloadUrl = moduleAsset.BrowserDownloadUrl,
+                FileSize = moduleAsset.Size
+            };
+            releaseCache.SaveCacheEntry(cacheEntry);
+
+            CommandWindow.LogWarning($"Installed RocketModFix v{latestRelease.TagName}");
         }
 
         private static bool IsRocketModFixModule(GitHubAsset asset)
@@ -149,7 +212,7 @@ namespace Rocket.AutoInstaller.Installation
                 }
                 catch (Exception ex)
                 {
-                    CommandWindow.LogError($"Error while collecting info about release entry: {entry.FullName} \n{ex}");
+                    CommandWindow.LogError($"Error reading {entry.FullName}: {ex}");
                 }
             }
             return entries;
@@ -180,7 +243,7 @@ namespace Rocket.AutoInstaller.Installation
             }
             catch (ReflectionTypeLoadException ex)
             {
-                CommandWindow.LogError($"An error occured while getting types for assembly: {assembly} \n" + ex);
+                CommandWindow.LogError($"Error getting types from {assembly}: {ex}");
                 return ex.Types.Where(x => x is not null);
             }
         }

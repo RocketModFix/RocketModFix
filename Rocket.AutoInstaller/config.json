@@ -1,5 +1,7 @@
 {
 	"EnableCustomInstall": false,
 	"CustomInstallPath": "",
-	"BlockIfRocketInstalled": true
+	"BlockIfRocketInstalled": true,
+	"AutoInstallRocketFromExtras": false,
+	"EnableRetry": true
 }
