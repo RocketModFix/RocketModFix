@@ -77,7 +77,7 @@ jobs:
           name: Rocket.AutoInstaller
           path: "./Rocket.AutoInstaller/bin/Release/net461/linux-x64/Rocket.AutoInstaller/"
           if-no-files-found: error
-
+          
       - name: Upload Rocket.Unturned.Module
         uses: actions/upload-artifact@v4
         with:

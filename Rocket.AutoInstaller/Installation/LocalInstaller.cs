@@ -28,16 +28,7 @@ namespace Rocket.AutoInstaller.Installation
 
             if (GenericUriDownloader.IsUri(localPath))
             {
-                if (GitHubActionsDownloader.IsGitHubActionsUrl(localPath))
-                {
-                    CommandWindow.Log("GitHub Actions URL detected, downloading...");
-                    yield return DownloadAndProcessGitHubArtifact(localPath, entries => releaseEntries = entries);
-                }
-                else
-                {
-                    CommandWindow.Log("URI detected, downloading...");
-                    yield return DownloadAndProcessGenericUri(localPath, entries => releaseEntries = entries);
-                }
+                yield return DownloadAndProcessGenericUri(localPath, entries => releaseEntries = entries);
             }
             else
             {
@@ -181,31 +172,6 @@ namespace Rocket.AutoInstaller.Installation
             }
 
             return entries;
-        }
-
-        private static IEnumerator DownloadAndProcessGitHubArtifact(string url, Action<List<ReleaseEntry>> onComplete)
-        {
-            var entries = new List<ReleaseEntry>();
-            var downloadSucceeded = false;
-            var downloadError = string.Empty;
-
-            yield return GitHubActionsDownloader.DownloadArtifactFromRun(url,
-                artifactData => {
-                    entries = GetReleaseEntries(artifactData);
-                    downloadSucceeded = true;
-                },
-                error => {
-                    downloadError = error;
-                    downloadSucceeded = false;
-                });
-
-            if (!downloadSucceeded)
-            {
-                CommandWindow.LogError($"GitHub Actions failed: {downloadError}");
-                yield break;
-            }
-
-            onComplete?.Invoke(entries);
         }
 
         private static IEnumerator DownloadAndProcessGenericUri(string uri, Action<List<ReleaseEntry>> onComplete)

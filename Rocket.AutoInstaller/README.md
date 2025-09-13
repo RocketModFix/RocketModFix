@@ -44,21 +44,19 @@ For developers who want to test their own builds without manually copying files 
    ```
    "CustomInstallPath": "C:\\Builds\\RocketModFix\\Rocket.Unturned"
    ```
-   
+
    The folder should contain either:
    - Rocket.Unturned.dll directly, or
    - Rocket.Unturned.Module.zip file, or
    - Rocket.Unturned.dll in any subdirectory
 
-3. GitHub Actions URL - Direct link to a GitHub Actions run
-   ```
-   "CustomInstallPath": "https://github.com/RocketModFix/RocketModFix/actions/runs/17277595277"
-   ```
-
-4. Generic URI - Any HTTP/HTTPS URL pointing to a zip file
+3. Direct URI - Any HTTP/HTTPS URL pointing to a zip file
    ```
    "CustomInstallPath": "https://example.com/downloads/Rocket.Unturned.Module.zip"
    ```
+
+   **Note:** GitHub Actions artifacts are currently not supported cause require authentication and aren't suitable for public downloads.
+   See [GitHub issue #51](https://github.com/actions/upload-artifact/issues/51) for details.
 
 ## Features
 
