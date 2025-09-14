@@ -12,36 +12,34 @@ namespace Rocket.AutoInstaller.Installation
 {
     public class LocalInstaller
     {
-        public static IEnumerator InstallFromLocalPath(string localPath)
+        public static IEnumerator Install(string path, Config config)
         {
-            if (!PathValidator.ValidateLocalBuildPath(localPath, out var errorMessage))
+            if (!PathValidator.ValidatePath(path, out var errorMessage))
             {
                 CommandWindow.LogError($"Local install failed: {errorMessage}");
-                PathValidator.LogValidationResult(localPath, false, errorMessage);
                 yield break;
             }
 
-            PathValidator.LogValidationResult(localPath, true);
-            CommandWindow.Log($"Installing from: {localPath}");
+            CommandWindow.Log($"Installing from: {path}");
 
             List<ReleaseEntry> releaseEntries = [];
 
-            if (GenericUriDownloader.IsUri(localPath))
+            if (DownloadHelper.IsUri(path))
             {
-                yield return DownloadAndProcessGenericUri(localPath, entries => releaseEntries = entries);
+                yield return DownloadAndProcessGenericUri(path, entries => releaseEntries = entries, config);
             }
             else
             {
                 try
                 {
-                    if (File.Exists(localPath) && localPath.EndsWith(".zip", StringComparison.OrdinalIgnoreCase))
+                    if (File.Exists(path) && path.EndsWith(".zip", StringComparison.OrdinalIgnoreCase))
                     {
-                        var zipData = File.ReadAllBytes(localPath);
+                        var zipData = File.ReadAllBytes(path);
                         releaseEntries = GetReleaseEntries(zipData);
                     }
                     else
                     {
-                        releaseEntries = GetReleaseEntriesFromDirectory(localPath);
+                        releaseEntries = GetReleaseEntriesFromDirectory(path);
                     }
                 }
                 catch (Exception ex)
@@ -114,7 +112,7 @@ namespace Rocket.AutoInstaller.Installation
             }
 
             plugin.initialize();
-            CommandWindow.LogWarning($"Installed from local build: {localPath}");
+            CommandWindow.LogWarning($"Installed from local build: {path}");
         }
 
         private static List<ReleaseEntry> GetReleaseEntries(byte[] assetData)
@@ -174,13 +172,13 @@ namespace Rocket.AutoInstaller.Installation
             return entries;
         }
 
-        private static IEnumerator DownloadAndProcessGenericUri(string uri, Action<List<ReleaseEntry>> onComplete)
+        private static IEnumerator DownloadAndProcessGenericUri(string uri, Action<List<ReleaseEntry>> onComplete, Config config)
         {
             var entries = new List<ReleaseEntry>();
             var downloadSucceeded = false;
             var downloadError = string.Empty;
 
-            yield return GenericUriDownloader.DownloadFromUri(uri,
+            yield return DownloadHelper.Download(uri,
                 data => {
                     entries = GetReleaseEntries(data);
                     downloadSucceeded = true;
@@ -188,7 +186,8 @@ namespace Rocket.AutoInstaller.Installation
                 error => {
                     downloadError = error;
                     downloadSucceeded = false;
-                });
+                },
+                config);
 
             if (!downloadSucceeded)
             {

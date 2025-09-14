@@ -6,7 +6,6 @@ using System.IO.Compression;
 using System.Linq;
 using System.Reflection;
 using Newtonsoft.Json;
-using Rocket.AutoInstaller;
 using SDG.Framework.Modules;
 using SDG.Unturned;
 using UnityEngine.Networking;
@@ -20,7 +19,7 @@ namespace Rocket.AutoInstaller.Installation
             if (config.EnableCustomInstall == true && !string.IsNullOrWhiteSpace(config.CustomInstallPath))
             {
                 CommandWindow.Log("Installing from local path...");
-                yield return LocalInstaller.InstallFromLocalPath(config.CustomInstallPath);
+                yield return LocalInstaller.Install(config.CustomInstallPath!, config);
                 yield break;
             }
 
@@ -31,23 +30,8 @@ namespace Rocket.AutoInstaller.Installation
                 yield break;
             }
 
-            yield return InstallFromGitHub(config);
-        }
-
-        public static IEnumerator InstallFromGitHub(Config config)
-        {
             var modulesDirectory = Path.Combine(ReadWrite.PATH, "Modules");
             var releaseCache = new ReleaseCache(modulesDirectory);
-
-            if (releaseCache.IsRocketInstalled())
-            {
-                var cachedEntry = releaseCache.GetCachedEntry();
-                if (cachedEntry != null)
-                {
-                    CommandWindow.Log($"Already installed: {cachedEntry.TagName}");
-                    yield break;
-                }
-            }
 
             yield return FetchAndInstallLatestRelease(releaseCache, config);
         }
@@ -64,6 +48,33 @@ namespace Rocket.AutoInstaller.Installation
             {
                 var errorMessage = $"Failed to fetch releases: {request.error} (Status: {request.responseCode})";
                 CommandWindow.LogError(errorMessage);
+
+                if (config.EnableCaching)
+                {
+                    var cachedEntry = releaseCache.GetCachedEntry();
+                    if (cachedEntry != null && releaseCache.IsFileCached(cachedEntry.TagName))
+                    {
+                        CommandWindow.LogWarning("Using cached version due to network error");
+                        var cachedData = releaseCache.LoadCachedFile(cachedEntry.TagName);
+                        if (cachedData != null)
+                        {
+                            var mockRelease = new GitHubRelease
+                            {
+                                TagName = cachedEntry.TagName,
+                                Name = cachedEntry.Name,
+                                PublishedAt = cachedEntry.PublishedAt
+                            };
+                            var mockAsset = new GitHubAsset
+                            {
+                                BrowserDownloadUrl = cachedEntry.DownloadUrl,
+                                Size = cachedEntry.FileSize
+                            };
+                            yield return ProcessModuleData(cachedData, mockRelease, mockAsset, releaseCache);
+                            yield break;
+                        }
+                    }
+                }
+
                 throw new Exception(errorMessage);
             }
 
@@ -87,37 +98,56 @@ namespace Rocket.AutoInstaller.Installation
                 throw new Exception("Module asset not found");
             }
 
+            if (config.EnableCaching && releaseCache.IsFileCached(latestRelease.TagName))
+            {
+                CommandWindow.Log($"Using cached version: {latestRelease.TagName}");
+                var cachedData = releaseCache.LoadCachedFile(latestRelease.TagName);
+                if (cachedData != null)
+                {
+                    yield return ProcessModuleData(cachedData, latestRelease, moduleAsset, releaseCache);
+                    yield break;
+                }
+            }
+
             if (!releaseCache.IsNewerReleaseAvailable(latestRelease.TagName, latestRelease.PublishedAt))
             {
-                CommandWindow.Log("No newer release available");
+                var cachedEntry = releaseCache.GetCachedEntry();
+                if (cachedEntry != null)
+                {
+                    CommandWindow.Log($"Already up to date: {cachedEntry.TagName}");
+                }
+                else
+                {
+                    CommandWindow.Log($"Already up to date: {latestRelease.TagName}");
+                }
                 yield break;
             }
 
             CommandWindow.LogWarning($"Installing RocketModFix {latestRelease.TagName} ({latestRelease.PublishedAt:yyyy-MM-dd})");
 
             byte[]? rawData = null;
-            if (config.EnableRetry)
-            {
-                yield return RetryHelper.DownloadWithRetry(
-                    moduleAsset.BrowserDownloadUrl,
-                    data => rawData = data,
-                    error => throw new Exception(error),
-                    maxRetries: 5,
-                    delaySeconds: 5.0f);
-            }
-            else
-            {
-                yield return RetryHelper.DownloadSingleAttempt(
-                    moduleAsset.BrowserDownloadUrl,
-                    data => rawData = data,
-                    error => throw new Exception(error));
-            }
+            yield return DownloadHelper.Download(
+                moduleAsset.BrowserDownloadUrl,
+                data => rawData = data,
+                error => throw new Exception(error),
+                config,
+                delaySeconds: 5.0f);
 
             if (rawData == null)
             {
                 throw new Exception("Failed to download module data");
             }
 
+            if (config.EnableCaching)
+            {
+                releaseCache.SaveCachedFile(latestRelease.TagName, rawData);
+            }
+
+            yield return ProcessModuleData(rawData, latestRelease, moduleAsset, releaseCache);
+        }
+
+        private static IEnumerator ProcessModuleData(byte[] rawData, GitHubRelease latestRelease, GitHubAsset moduleAsset, ReleaseCache releaseCache)
+        {
             var releaseEntries = GetReleaseEntries(rawData);
             byte[]? rocketModuleData = null;
             List<byte[]> rocketLibraries = [];
@@ -150,8 +180,7 @@ namespace Rocket.AutoInstaller.Installation
             var rocketModule = Assembly.Load(rocketModuleData);
 
             var types = GetLoadableTypes(rocketModule);
-            var moduleType = types.FirstOrDefault(
-                x => x.IsAbstract == false && typeof(IModuleNexus).IsAssignableFrom(x));
+            var moduleType = types.FirstOrDefault(x => !x.IsAbstract && typeof(IModuleNexus).IsAssignableFrom(x));
             if (moduleType == null)
             {
                 CommandWindow.LogError("Rocket module type not found");
@@ -191,6 +220,7 @@ namespace Rocket.AutoInstaller.Installation
         {
             return asset.Name.Equals("Rocket.Unturned.Module.zip", StringComparison.Ordinal);
         }
+
         private static List<ReleaseEntry> GetReleaseEntries(byte[] assetData)
         {
             var entries = new List<ReleaseEntry>();

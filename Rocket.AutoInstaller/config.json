@@ -3,5 +3,6 @@
 	"CustomInstallPath": "",
 	"BlockIfRocketInstalled": true,
 	"AutoInstallRocketFromExtras": false,
-	"EnableRetry": true
+	"EnableRetry": true,
+	"EnableCaching": true
 }

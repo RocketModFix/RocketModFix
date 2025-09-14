@@ -6,6 +6,8 @@ Auto-installer for RocketModFix. Downloads and installs the latest version from 
 
 Just drop the module in your `Modules` folder and start your server. It will automatically download and install the latest RocketModFix.
 
+**Important:** Before using the auto-installer, remove any manually installed `Rocket.Unturned` from your `Modules` directory to avoid conflicts.
+
 ## Configuration
 
 Edit `config.json` to customize installation behavior:
@@ -16,7 +18,8 @@ Edit `config.json` to customize installation behavior:
 	"CustomInstallPath": "",
 	"BlockIfRocketInstalled": true,
 	"AutoInstallRocketFromExtras": false,
-	"EnableRetry": true
+	"EnableRetry": true,
+	"EnableCaching": true
 }
 ```
 
@@ -25,6 +28,7 @@ Edit `config.json` to customize installation behavior:
 **For regular users:**
 - `BlockIfRocketInstalled` - Prevent installation if Rocket is already installed
 - `EnableRetry` - Enable retry mechanism for failed downloads (5 attempts, 5s delay)
+- `EnableCaching` - Enable file caching for faster startup and offline support
 
 **For developers:**
 - `EnableCustomInstall` - Enable local installation instead of GitHub
@@ -57,15 +61,6 @@ For developers who want to test their own builds without manually copying files 
 
    **Note:** GitHub Actions artifacts are currently not supported cause require authentication and aren't suitable for public downloads.
    See [GitHub issue #51](https://github.com/actions/upload-artifact/issues/51) for details.
-
-## Features
-
-- Auto-install from GitHub - Downloads latest release automatically
-- Local build support - Install from zip files, directories, or URLs
-- Smart caching - Only downloads when newer versions are available
-- Retry mechanism - Handles network issues with automatic retries
-- Extras integration - Auto-install from server's Extras folder
-- Safety checks - Prevents conflicts with existing installations
 
 ## Plans
 

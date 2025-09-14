@@ -6,7 +6,7 @@ namespace Rocket.AutoInstaller.Installation
 {
     public static class PathValidator
     {
-        public static bool ValidateLocalBuildPath(string path, out string errorMessage)
+        public static bool ValidatePath(string path, out string errorMessage)
         {
             errorMessage = string.Empty;
 
@@ -16,7 +16,7 @@ namespace Rocket.AutoInstaller.Installation
                 return false;
             }
 
-            if (GenericUriDownloader.IsUri(path))
+            if (DownloadHelper.IsUri(path))
             {
                 return ValidateUri(path, out errorMessage);
             }
@@ -31,7 +31,7 @@ namespace Rocket.AutoInstaller.Installation
                 return ValidateDirectory(path, out errorMessage);
             }
 
-            errorMessage = $"Path does not exist (neither file nor directory): {path}";
+            errorMessage = $"Path does not exist (neither file, directory, nor valid URL): {path}";
             return false;
         }
 
@@ -123,18 +123,6 @@ namespace Rocket.AutoInstaller.Installation
 
             errorMessage = $"Neither Rocket.Unturned.dll nor Rocket.Unturned.Module.zip found in: {directoryPath}";
             return false;
-        }
-
-        public static void LogValidationResult(string path, bool isValid, string errorMessage = "")
-        {
-            if (isValid)
-            {
-                CommandWindow.Log($"Path validated: {path}");
-            }
-            else
-            {
-                CommandWindow.LogError($"Path validation failed: {errorMessage}");
-            }
         }
     }
 }

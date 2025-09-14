@@ -18,6 +18,7 @@ namespace Rocket.AutoInstaller
         public bool BlockIfRocketInstalled { get; set; }
         public bool AutoInstallRocketFromExtras { get; set; }
         public bool EnableRetry { get; set; }
+        public bool EnableCaching { get; set; }
     }
 
     /// <summary>
@@ -59,6 +60,7 @@ namespace Rocket.AutoInstaller
                     BlockIfRocketInstalled = true,
                     AutoInstallRocketFromExtras = false,
                     EnableRetry = true,
+                    EnableCaching = true,
                 };
                 File.WriteAllText(configPath, JsonConvert.SerializeObject(config, Formatting.Indented));
             }

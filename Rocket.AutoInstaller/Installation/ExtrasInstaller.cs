@@ -2,9 +2,7 @@ using System;
 using System.Collections;
 using System.IO;
 using System.IO.Compression;
-using System.Linq;
 using SDG.Unturned;
-using UnityEngine.Networking;
 
 namespace Rocket.AutoInstaller.Installation
 {
