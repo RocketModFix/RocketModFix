@@ -62,12 +62,6 @@ jobs:
           nuget_push: false
           github_token: ${{ secrets.PAT }}
 
-      - name: Install zip
-        run: sudo apt-get install zip
-
-      - name: Zip Rocket.AutoInstaller artifacts
-        run: "cd ./Rocket.AutoInstaller/bin/Release/net461/linux-x64/Rocket.AutoInstaller && zip -qq -r ./Rocket.AutoInstaller.zip *"
-
       - name: Build Rocket.Unturned.Module
         uses: ./.github/actions/project-build
         id: unturned-module-build
@@ -77,22 +71,25 @@ jobs:
           nuget_push: false
           github_token: ${{ secrets.PAT }}
 
-      - name: Zip Rocket.Unturned artifacts
-        run: "cd ./Rocket.Unturned/bin/Release/net461/linux-x64/Rocket.Unturned && zip -qq -r ./Rocket.Unturned.Module.zip *"
-
       - name: Upload Rocket.AutoInstaller
         uses: actions/upload-artifact@v4
         with:
-          name: Rocket.AutoInstaller.zip
-          path: "./Rocket.AutoInstaller/bin/Release/net461/linux-x64/Rocket.AutoInstaller/Rocket.AutoInstaller.zip"
+          name: Rocket.AutoInstaller
+          path: "./Rocket.AutoInstaller/bin/Release/net461/linux-x64/Rocket.AutoInstaller/"
           if-no-files-found: error
-
+          
       - name: Upload Rocket.Unturned.Module
         uses: actions/upload-artifact@v4
         with:
-          name: Rocket.Unturned.Module.zip
-          path: "./Rocket.Unturned/bin/Release/net461/linux-x64/Rocket.Unturned/Rocket.Unturned.Module.zip"
+          name: Rocket.Unturned.Module
+          path: "./Rocket.Unturned/bin/Release/net461/linux-x64/Rocket.Unturned/"
           if-no-files-found: error
+
+      - name: Zip Rocket.AutoInstaller artifacts
+        run: "cd ./Rocket.AutoInstaller/bin/Release/net461/linux-x64/Rocket.AutoInstaller && zip -qq -r ./Rocket.AutoInstaller.zip *"
+
+      - name: Zip Rocket.Unturned artifacts
+        run: "cd ./Rocket.Unturned/bin/Release/net461/linux-x64/Rocket.Unturned && zip -qq -r ./Rocket.Unturned.Module.zip *"
 
       - name: Create Release
         if: github.event_name == 'create' && github.event.ref_type == 'tag'
