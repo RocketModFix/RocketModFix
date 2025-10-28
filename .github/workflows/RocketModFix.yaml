@@ -72,14 +72,14 @@ jobs:
           github_token: ${{ secrets.PAT }}
 
       - name: Upload Rocket.AutoInstaller
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: Rocket.AutoInstaller
           path: "./Rocket.AutoInstaller/bin/Release/net461/linux-x64/Rocket.AutoInstaller/"
           if-no-files-found: error
           
       - name: Upload Rocket.Unturned.Module
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: Rocket.Unturned.Module
           path: "./Rocket.Unturned/bin/Release/net461/linux-x64/Rocket.Unturned/"
