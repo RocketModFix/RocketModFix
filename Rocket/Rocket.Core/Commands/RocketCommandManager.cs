@@ -1,6 +1,7 @@
 ﻿using Rocket.API;
 using Rocket.API.Serialisation;
 using Rocket.Core.Assets;
+using Rocket.Core.Plugins;
 using Rocket.Core.Serialization;
 using Rocket.Core.Utils;
 using System;
@@ -337,7 +338,8 @@ namespace Rocket.Core.Commands
         }
 
         private static bool CheckCommandMethodSignature(MethodInfo method) =>
-            !method.IsStatic && !method.IsAbstract && method.ReturnType == typeof(void) && CheckCommandMethodParameters(method.GetParameters());
+            !method.IsStatic && !method.IsAbstract && method.DeclaringType.IsSubclassOf(typeof(RocketPlugin))
+            && method.ReturnType == typeof(void) && CheckCommandMethodParameters(method.GetParameters());
 
         private static bool CheckCommandMethodParameters(ParameterInfo[] parameters) =>
             parameters.Length is 2 && parameters[0].ParameterType == typeof(IRocketPlayer) && parameters[1].ParameterType == typeof(string[]);
