@@ -336,15 +336,11 @@ namespace Rocket.Core.Commands
             }
         }
 
-        private bool CheckCommandMethodSignature(MethodInfo method)
-        {
-            if (method.ReturnType != typeof(void))
-                return false;
+        private static bool CheckCommandMethodSignature(MethodInfo method) =>
+            !method.IsStatic && !method.IsAbstract && method.ReturnType == typeof(void) && CheckCommandMethodParameters(method.GetParameters());
 
-            var parameters = method.GetParameters();
-
-            return parameters.Length is 2 && parameters[0].ParameterType == typeof(IRocketPlayer) && parameters[1].ParameterType == typeof(string[]);
-        }
+        private static bool CheckCommandMethodParameters(ParameterInfo[] parameters) =>
+            parameters.Length is 2 && parameters[0].ParameterType == typeof(IRocketPlayer) && parameters[1].ParameterType == typeof(string[]);
 
         public class RegisteredRocketCommand : IRocketCommand
         {
