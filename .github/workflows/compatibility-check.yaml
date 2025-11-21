@@ -16,10 +16,10 @@ jobs:
     
     steps:
       - name: Checkout current fork
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
           
       - name: Checkout original repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           repository: SmartlyDressedGames/Legally-Distinct-Missile
           path: original-repo
