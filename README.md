@@ -102,7 +102,9 @@ See here details [how to contribute][contributing].
 
 ### Redist
 
-[![RocketModFix.Unturned.Redist][badge_RocketModFix.Unturned.Redist]][nuget_package_RocketModFix.Unturned.Redist]
+[![RocketModFix.Unturned.Redist.Client][badge_RocketModFix.Unturned.Redist.Client]][nuget_package_RocketModFix.Unturned.Redist.Client]
+
+[![RocketModFix.Unturned.Redist.Server][badge_RocketModFix.Unturned.Redist.Server]][nuget_package_RocketModFix.Unturned.Redist.Server]
 
 [![RocketModFix.UnityEngine.Redist][badge_RocketModFix.UnityEngine.Redist]][nuget_package_RocketModFix.UnityEngine.Redist]
 
@@ -141,8 +143,10 @@ On the 2nd of June 2020 fr34kyn01535 requested the fork be rebranded to help dis
 [openmod_github_repository]: https://github.com/openmod/openmod
 [ldm_github_repository]: https://github.com/SmartlyDressedGames/Legally-Distinct-Missile
 
-[nuget_package_RocketModFix.Unturned.Redist]: https://www.nuget.org/packages/RocketModFix.Unturned.Redist
-[badge_RocketModFix.Unturned.Redist]: https://img.shields.io/nuget/v/RocketModFix.Unturned.Redist?label=RocketModFix.Unturned.Redist&link=https%3A%2F%2Fwww.nuget.org%2Fpackages%2FRocketModFix.Unturned.Redist
+[nuget_package_RocketModFix.Unturned.Redist.Client]: https://www.nuget.org/packages/RocketModFix.Unturned.Redist.Client
+[badge_RocketModFix.Unturned.Redist.Client]: https://img.shields.io/nuget/v/RocketModFix.Unturned.Redist.Client?label=RocketModFix.Unturned.Redist.Client&link=https%3A%2F%2Fwww.nuget.org%2Fpackages%2FRocketModFix.Unturned.Redist.Client
+[nuget_package_RocketModFix.Unturned.Redist.Server]: https://www.nuget.org/packages/RocketModFix.Unturned.Redist.Server
+[badge_RocketModFix.Unturned.Redist.Server]: https://img.shields.io/nuget/v/RocketModFix.Unturned.Redist.Server?label=RocketModFix.Unturned.Redist.Server&link=https%3A%2F%2Fwww.nuget.org%2Fpackages%2FRocketModFix.Unturned.Redist.Server
 [nuget_package_RocketModFix.UnityEngine.Redist]: https://www.nuget.org/packages/RocketModFix.UnityEngine.Redist
 [badge_RocketModFix.UnityEngine.Redist]: https://img.shields.io/nuget/v/RocketModFix.UnityEngine.Redist?label=RocketModFix.UnityEngine.Redist&link=https%3A%2F%2Fwww.nuget.org%2Fpackages%2FRocketModFix.UnityEngine.Redist
 [nuget_package_RocketModFix.Rocket.API]: https://www.nuget.org/packages/RocketModFix.Rocket.API
