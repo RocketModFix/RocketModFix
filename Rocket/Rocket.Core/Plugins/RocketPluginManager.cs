@@ -45,18 +45,39 @@ namespace Rocket.Core.Plugins
             try
             {
                 AssemblyName requestedName = new AssemblyName(args.Name);
-                var bestMatch = libraries.FirstOrDefault(lib => string.Equals(lib.Key.Name, requestedName.Name) && lib.Key.Version >= requestedName.Version);
+                var matchesByName = libraries.Where(lib => string.Equals(lib.Key.Name, requestedName.Name));
+                
+                // Prefer exactly-matching version if possible.
+                var bestMatch = matchesByName.FirstOrDefault(lib => lib.Key.Version == requestedName.Version);
+                if (string.IsNullOrEmpty(bestMatch.Value))
+                {
+                    // Otherwise, fallback to highest version.
+                    bestMatch = matchesByName.OrderByDescending(lib => lib.Key.Version).FirstOrDefault();
+                }
                 if (!string.IsNullOrEmpty(bestMatch.Value))
                 {
+                    // https://github.com/SmartlyDressedGames/Legally-Distinct-Missile/issues/84
+                    if (requestedName.Version != null)
+                    {
+                        if (bestMatch.Key.Version == null)
+                        {
+                            Logging.Logger.LogWarning($"Rocket best match for dependency {requestedName} has no configued version: {bestMatch.Key} at {bestMatch.Value}");
+                        }
+                        else if (bestMatch.Key.Version < requestedName.Version)
+                        {
+                            Logging.Logger.LogWarning($"Rocket best match for dependency {requestedName} version is older than requested: {bestMatch.Key} at {bestMatch.Value}");
+                        }
+                    }
+
                     return Assembly.Load(File.ReadAllBytes(bestMatch.Value));
                 }
             }
             catch (Exception ex)
             {
-                Logging.Logger.LogException(ex, "Caught exception resolving dependency: " + args.Name);
+                Logging.Logger.LogException(ex, "Rocket caught exception resolving dependency: " + args.Name);
             }
 
-            Logging.Logger.LogError("Could not find dependency: " + args.Name);
+            Logging.Logger.LogError("Rocket could not find dependency: " + args.Name);
             return null;
         }
 
@@ -82,6 +103,11 @@ namespace Rocket.Core.Plugins
             {
                 if(!libraries.ContainsKey(pair.Key))
                     libraries.Add(pair.Key,pair.Value);
+            }
+
+            foreach (KeyValuePair<AssemblyName, string> pair in libraries)
+            {
+                Logging.Logger.Log($"Rocket dependency registered: {pair.Key} at {pair.Value}");
             }
 
             pluginAssemblies = LoadAssembliesFromDirectory(Environment.PluginsDirectory);
