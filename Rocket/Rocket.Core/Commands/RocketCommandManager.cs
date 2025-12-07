@@ -1,17 +1,16 @@
-﻿﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Collections.ObjectModel;
-using UnityEngine;
-using Rocket.API;
-using System.Text.RegularExpressions;
-using System.Reflection;
-using Rocket.Core.Utils;
-using Rocket.Core.Logging;
-using Rocket.Core.Serialization;
-using Rocket.Core.Assets;
-using Rocket.Core.Permissions;
+﻿using Rocket.API;
 using Rocket.API.Serialisation;
+using Rocket.Core.Assets;
+using Rocket.Core.Plugins;
+using Rocket.Core.Serialization;
+using Rocket.Core.Utils;
+using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Linq;
+using System.Reflection;
+using System.Text.RegularExpressions;
+using UnityEngine;
 
 namespace Rocket.Core.Commands
 {
@@ -89,7 +88,7 @@ namespace Rocket.Core.Commands
         {
             if (command is RocketAttributeCommand)
             {
-                return ((RocketAttributeCommand)command).Method.ReflectedType.FullName+"/"+ name;
+                return ((RocketAttributeCommand)command).MethodInvoker.Method.ReflectedType.FullName+"/"+ name;
             }
             else if(command.GetType().ReflectedType != null)
             {
@@ -105,7 +104,7 @@ namespace Rocket.Core.Commands
         {
             if (command is RocketAttributeCommand)
             {
-                return ((RocketAttributeCommand)command).Method.ReflectedType;
+                return ((RocketAttributeCommand)command).MethodInvoker.Method.ReflectedType;
             }
             else if (command.GetType().ReflectedType != null)
             {
@@ -321,7 +320,13 @@ namespace Rocket.Core.Commands
                             }
                         }
 
-                        IRocketCommand command = new RocketAttributeCommand(commandAttribute.Name, commandAttribute.Help, commandAttribute.Syntax, commandAttribute.AllowedCaller, Permissions, Aliases, method);
+                        if (!CheckCommandMethodSignature(method))
+                            continue;
+
+                        if (method.CreateDelegate(typeof(RocketAttributeCommand.Invoker), plugin) is not RocketAttributeCommand.Invoker invoker)
+                            continue;
+
+                        IRocketCommand command = new RocketAttributeCommand(commandAttribute.Name, commandAttribute.Help, commandAttribute.Syntax, commandAttribute.AllowedCaller, Permissions, Aliases, invoker);
                         Register(command);
                         foreach (string alias in command.Aliases)
                         {
@@ -331,6 +336,13 @@ namespace Rocket.Core.Commands
                 }
             }
         }
+
+        private static bool CheckCommandMethodSignature(MethodInfo method) =>
+            !method.IsStatic && !method.IsAbstract && method.DeclaringType.IsSubclassOf(typeof(RocketPlugin))
+            && method.ReturnType == typeof(void) && CheckCommandMethodParameters(method.GetParameters());
+
+        private static bool CheckCommandMethodParameters(ParameterInfo[] parameters) =>
+            parameters.Length is 2 && parameters[0].ParameterType == typeof(IRocketPlayer) && parameters[1].ParameterType == typeof(string[]);
 
         public class RegisteredRocketCommand : IRocketCommand
         {
@@ -402,59 +414,27 @@ namespace Rocket.Core.Commands
 
         internal class RocketAttributeCommand : IRocketCommand
         {
-            internal RocketAttributeCommand(string Name,string Help,string Syntax,AllowedCaller AllowedCaller,List<string>Permissions,List<string>Aliases,MethodInfo Method)
+            internal delegate void Invoker(IRocketPlayer caller, string[] arguments);
+
+            internal RocketAttributeCommand(string name, string help, string syntax, AllowedCaller allowedCaller, List<string> permissions, List<string> aliases, Invoker method)
             {
-                name = Name;
-                help = Help;
-                syntax = Syntax;
-                permissions = Permissions;
-                aliases = Aliases;
-                method = Method;
-                allowedCaller = AllowedCaller;
+                Name = name;
+                Help = help;
+                Syntax = syntax;
+                Permissions = permissions;
+                Aliases = aliases;
+                MethodInvoker = method;
+                AllowedCaller = allowedCaller;
             }
 
-            private List<string> aliases;
-            public List<string> Aliases{ get { return aliases; } }
-
-            private AllowedCaller allowedCaller;
-            public AllowedCaller AllowedCaller { get { return allowedCaller; } }
-
-            private string help;
-            public string Help { get { return help; } }
-
-            private string name;
-            public string Name { get { return name; } }
-
-            private string syntax;
-            public string Syntax { get { return syntax; } }
-
-            private List<string> permissions;
-            public List<string> Permissions { get { return permissions; } }
-
-            private MethodInfo method;
-            public MethodInfo Method { get { return method; } }
-            public void Execute(IRocketPlayer caller, string[] parameters)
-            {
-                ParameterInfo[] methodParameters = method.GetParameters();
-                switch (methodParameters.Length)
-                {
-                    case 0:
-                        method.Invoke(R.Plugins.GetPlugin(method.ReflectedType.Assembly), null);
-                        break;
-                    case 1:
-                        if (methodParameters[0].ParameterType == typeof(IRocketPlayer))
-                            method.Invoke(R.Plugins.GetPlugin(method.ReflectedType.Assembly), new object[] { caller });
-                        else if (methodParameters[0].ParameterType == typeof(string[]))
-                            method.Invoke(R.Plugins.GetPlugin(method.ReflectedType.Assembly), new object[] { parameters });
-                        break;
-                    case 2:
-                        if (methodParameters[0].ParameterType == typeof(IRocketPlayer) && methodParameters[1].ParameterType == typeof(string[]))
-                            method.Invoke(R.Plugins.GetPlugin(method.ReflectedType.Assembly), new object[] { caller, parameters });
-                        else if (methodParameters[0].ParameterType == typeof(string[]) && methodParameters[1].ParameterType == typeof(IRocketPlayer))
-                            method.Invoke(R.Plugins.GetPlugin(method.ReflectedType.Assembly), new object[] { parameters, caller });
-                        break;
-                }
-            }
+            public List<string> Aliases { get; }
+            public AllowedCaller AllowedCaller { get; }
+            public string Help { get; }
+            public string Name { get; }
+            public string Syntax { get; }
+            public List<string> Permissions { get; }
+            public Invoker MethodInvoker { get; }
+            public void Execute(IRocketPlayer caller, string[] parameters) => MethodInvoker(caller, parameters);
         }
     }
 }
