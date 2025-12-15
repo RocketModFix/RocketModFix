@@ -91,7 +91,7 @@ jobs:
             --suppression-output-file ./generated-api-suppressions.xml
           
       - name: Upload generated suppression file
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: generated-api-suppressions
           path: ./generated-api-suppressions.xml
